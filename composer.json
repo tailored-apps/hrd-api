@@ -1,0 +1,12 @@
+{
+    "name": "hrd/hrd-api",
+    "license": "propietary",
+    "type": "library",
+    "description": "HRD Api",
+    "require": {
+        "php": "^7.0"
+    },
+    "autoload": {
+        "psr-4": { "HRDBase\\Api\\": "src" }
+    }
+}
