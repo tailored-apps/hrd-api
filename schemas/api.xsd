@@ -76,13 +76,15 @@
                 </unique>
             </element>
             <element name="info" type="hrd:domainNameType"></element>
-            <element name="book" type="hrd:domainNameType"></element>
+            <element name="book" type="hrd:domainBookType"></element>
             <element name="create" type="hrd:domainCreateType"></element>
             <element name="transfer" type="hrd:domainTransferType"></element>
             <element name="transferStatus" type="hrd:actionIdType"></element>
+            <element name="transferRegistrantEmail" type="hrd:transferRegistrantEmailType"></element>
             <element name="trade" type="hrd:domainTradeType"></element>
             <element name="tradeAssignorCancel" type="hrd:actionConfirmCancelType"></element>
             <element name="tradeAssigneeCancel" type="hrd:actionConfirmCancelType"></element>
+            <element name="tradeCancel" type="hrd:domainTradeCancelType"></element>
             <element name="renew" type="hrd:domainRenewType"></element>
             <element name="update" type="hrd:domainUpdateType"></element>
             <element name="list" type="hrd:domainListType"></element>
@@ -107,7 +109,6 @@
             <element name="contactSet" type="hrd:domainContactSetType"></element>
             <element name="tradeGetPw" type="hrd:domainNameType"></element>
             <element name="tradeInnerGetPw" type="hrd:domainNameType"></element>
-            <element name="transferGetPw" type="hrd:domainNameType"></element> <!-- todo in php -->
             <element name="tradeStatus" type="hrd:actionIdType"></element>
             <element name="tradePayerConfirm" type="hrd:actionIdType"></element>
             <element name="futureCheck" type="hrd:domainCheck">
@@ -126,6 +127,7 @@
             <element name="dnssecDelete" type="hrd:domainDnsSecType"></element>
             <element name="hostCreate" type="hrd:domainHostCreateType"></element>
             <element name="hostDelete" type="hrd:domainNameType"></element>
+            <element name="hostUpdate" type="hrd:domainHostCreateType"></element>
             <element name="hostInfo" type="hrd:domainNameType"></element>
             <element name="hostList" type="hrd:domainListType"></element>
         </choice>
@@ -605,6 +607,13 @@
         </all>
     </complexType>
 
+    <complexType name="transferRegistrantEmailType">
+        <all>
+            <element name="name" type="hrd:domainNameSimpleType"></element>
+            <element name="pw" type="string"></element>
+        </all>
+    </complexType>
+
     <complexType name="domainTradeType">
         <sequence>
             <element name="name" type="hrd:domainNameSimpleType"></element>
@@ -752,7 +761,7 @@
     <complexType name="domainHostCreateType">
         <sequence>
             <element name="name" type="hrd:domainNameSimpleType"></element>
-            <choice minOccurs="1" maxOccurs="10">
+            <choice minOccurs="0" maxOccurs="10">
                 <element name="ipv4" type="hrd:ipv4Type"></element>
                 <element name="ipv6" type="hrd:ipv6Type"></element>
             </choice>
@@ -880,7 +889,7 @@
             </choice>
             <element name="idNumber" type="hrd:String1_255Type"></element>
             <element name="email" type="hrd:emailType"></element>
-            <element name="mobilePhone" type="hrd:mobilePhoneType"
+            <element name="mobilePhone" type="hrd:landlineOrMobilePhoneType"
                      minOccurs="0">
             </element>
             <element name="landlinePhone" type="hrd:landlineOrMobilePhoneType"></element>
@@ -896,7 +905,7 @@
     <complexType name="userUpdateType">
         <sequence>
             <element name="id" type="unsignedInt"></element>
-            <element name="mobilePhone" type="hrd:mobilePhoneType"
+            <element name="mobilePhone" type="hrd:landlineOrMobilePhoneType"
                      minOccurs="0">
             </element>
             <element name="landlinePhone" type="hrd:landlineOrMobilePhoneType"
@@ -976,24 +985,12 @@
                         <enumeration value="Instant SSL"></enumeration>
                         <enumeration value="Positive SSL"></enumeration>
                         <enumeration value="Positive SSL + Wildcard"></enumeration>
-                        <enumeration value="Power Server ID"></enumeration>
-                        <enumeration value="PremiumSSL + Wildcard"></enumeration>
                         <enumeration value="QuickSSL Basic"></enumeration>
                         <enumeration value="QuickSSL Premium"></enumeration>
-                        <enumeration value="QuickSSL Premium Wildcard"></enumeration>
                         <enumeration value="QuickSSL Premium Free Trial"></enumeration>
-                        <enumeration value="RapidSSL"></enumeration>
-                        <enumeration value="RapidSSL Wildcard"></enumeration>
-                        <enumeration value="Secure Site"></enumeration>
-                        <enumeration value="Secure Site Wildcard"></enumeration>
-                        <enumeration value="Secure Site Pro"></enumeration>
-                        <enumeration value="Secure Site + EV"></enumeration>
-                        <enumeration value="Secure Site Pro + EV"></enumeration>
-                        <enumeration value="SSL123"></enumeration>
                         <enumeration value="True BusinessID"></enumeration>
                         <enumeration value="True BusinessID Wildcard"></enumeration>
                         <enumeration value="True BusinessID + EV"></enumeration>
-                        <enumeration value="Trust Seal"></enumeration>
                     </restriction>
                 </simpleType>
             </element>
@@ -1051,7 +1048,7 @@
             <element name="role">
                 <simpleType>
                     <restriction base="string">
-                        <enumeration value="Administration Stuff"></enumeration>
+                        <enumeration value="Administration Staff"></enumeration>
                         <enumeration value="Business Owner"></enumeration>
                         <enumeration value="Chairman"></enumeration>
                         <enumeration value="Company Director"></enumeration>
@@ -1121,7 +1118,7 @@
 
     <simpleType name="certString200Type">
         <restriction base="string">
-            <pattern value="[a-zA-Z0-9,\-_\. ]{1,200}"></pattern>
+            <pattern value="[a-zA-Z0-9,\-_\. /]{1,200}"></pattern>
         </restriction>
     </simpleType>
 
@@ -1166,16 +1163,12 @@
 
     <simpleType name="landlineOrMobilePhoneType">
         <restriction base="string">
-            <maxLength value="30"></maxLength>
+            <maxLength value="17"></maxLength>
             <pattern
-                    value="((\+44\.[1235][0-9]{8,9})|(\+48\.(12|13|14|15|16|17|18|22|23|24|25|26|29|32|33|34|39|41|42|43|44|46|47|48|52|54|55|56|58|59|61|62|63|65|67|68|71|74|75|76|77|81|82|83|84|85|86|87|89|91|94|95)[0-9]{7})|(\+(1|2[07]|21[2368]|2[2346][0-9]|25[0-8]|29[01789]|3[0123469]|3[57][0-9]|38[012356789]|4[0135679]|42[013]|5[1-8]|5[09][0-9]|6[0-6]|67[023456789]|68[0-9]|69[0-2]|7|8[1246]|85[02356]|88[016]|9[0123459]|96[1-8]|97[0-7]|99[234568])\.[1-9][0-9]{1,}))">
-            </pattern>
-            <pattern
-                    value="((\+44\.7([45789][0-9]{8}|624[0-9]{6}))|(\+48\.(50|51|53|57|60|66|69|72|73|78|79|88)[0-9]{7})|(\+(1|2[07]|21[2368]|2[2346][0-9]|25[0-8]|29[01789]|3[0123469]|3[57][0-9]|38[012356789]|4[0135679]|42[013]|5[1-8]|5[09][0-9]|6[0-6]|67[023456789]|68[0-9]|69[0-2]|7|8[1246]|85[02356]|88[016]|9[0123459]|96[1-8]|97[0-7]|99[234568])\.[1-9][0-9]{1,}))">
+                    value="(\+[0-9]{1,3}\.[0-9]{4,14})">
             </pattern>
         </restriction>
     </simpleType>
-
     <simpleType name="String1_255Type">
         <restriction base="string">
             <minLength value="1"></minLength>
@@ -1471,10 +1464,24 @@
             <element name="ip" type="hrd:ipv4Type"></element>
         </sequence>
     </complexType>
+
+    <complexType name="domainTradeCancelType">
+        <sequence>
+            <element name="id" type="unsignedInt"></element>
+            <element name="ip" type="hrd:ipv4Type"></element>
+        </sequence>
+    </complexType>
+
     <complexType name="domainAuthInfoCheckType">
         <sequence>
             <element name="name" type="hrd:domainNameSimpleType"></element>
             <element name="authInfo" type="string"></element>
         </sequence>
+    </complexType>
+    <complexType name="domainBookType">
+        <all>
+            <element name="user" type="unsignedInt"></element>
+            <element name="name" type="hrd:domainNameSimpleType"></element>
+        </all>
     </complexType>
 </schema>

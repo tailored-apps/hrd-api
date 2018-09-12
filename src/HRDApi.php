@@ -6,6 +6,10 @@ use HRDBase\Api\Exceptions\HRDApiCommunicationException;
 use HRDBase\Api\Exceptions\HRDApiIncorrectDataException;
 use HRDBase\Api\Exceptions\HRDApiIncorrectDataReceivedException;
 
+/**
+ * Class HRDApi
+ * @package HRDBase\Api
+ */
 class HRDApi
 {
     /* @var HRDApi $instance */
@@ -18,7 +22,7 @@ class HRDApi
     protected $verifyPeer = false;
     protected $responseSchemaValidate = true;
     protected $schemaValidate = true;
-    protected $host = 'api.test.hrd.pl';
+    protected $host = 'api.hrd.pl';
     protected $port = 9999;
     protected $timeout = 3;
     protected $schemaFile = __DIR__ . '/../schemas/api.xsd';
@@ -28,7 +32,7 @@ class HRDApi
     protected $token = null;
 
     /**
-     * @param $config array
+     * @param array $config
      * @return HRDApi
      */
     public static function getInstance($config = [])
@@ -50,6 +54,10 @@ class HRDApi
      * Funkcja do pobrania stanu konta partnera. Zwraca tablicę z saldem konta oraz z zablokowanym środkami na poczet trwających operacji.
      *
      * @return array Tablica zawierająca elementy balance oraz restricted_balance – stan konta oraz zablokowane środki
+     *
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function partnerGetBalance()
     {
@@ -61,7 +69,12 @@ class HRDApi
     }
 
     /**
+     * Pobranie najstarszego nieprzeczytanego polla
      * @return array|bool
+     *
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function pollGet()
     {
@@ -74,16 +87,21 @@ class HRDApi
 
 
     /**
-     * @param int $id
+     * Potwierdzenie przeczytania wiadomości polla
+     *
+     * @param int $id - id wiadomości polla
      *
      * @return bool
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function pollAck(int $id)
     {
         /* @var \DOMDocument $dom */
         /* @var \DOMElement $elem */
         list($dom, $elem) = $this->getAPIDOMDocument('poll', 'ack');
-        $elem->appendChild($dom->createElement('id', (string)$id));
+        $elem->appendChild($dom->createElement('id', (string) $id));
 
         return $this->sendVoidResponse($dom, 'poll/ack');
     }
@@ -92,27 +110,36 @@ class HRDApi
     /**
      * @param int $id
      * @return array|bool
+     *
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function certInfo(int $id)
     {
         list($dom, $elem) = $this->getAPIDOMDocument('cert', 'info');
-        $elem->appendChild($dom->createElement('id', (string)$id));
+        $elem->appendChild($dom->createElement('id', (string) $id));
 
         return $this->sendArrayResponse($dom, 'cert/info/*');
     }
 
 
     /**
-     * @param string $product
-     * @param string $approverEmail
-     * @param string $csr
-     * @param mixed  $contact
-     * @param bool   $insurance
-     * @param int    $user
-     * @param int    $period
-     * @param string $periodUnit
-     * @return int
-     * @internal param int $userId
+     * Rejestracja certyfikatu w systemie
+     *
+     * @param string      $product
+     * @param string      $approverEmail
+     * @param string      $csr
+     * @param array|int   $contact
+     * @param bool        $insurance
+     * @param int         $user
+     * @param int         $period
+     * @param string|null $periodUnit
+     *
+     * @return array|bool
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function certCreate(
         string $product,
@@ -138,9 +165,9 @@ class HRDApi
 
 
         $elem->appendChild($dom->createElement('insurance', ($insurance ? 'true' : 'false')));
-        $elem->appendChild($dom->createElement('userId', (string)$user));
+        $elem->appendChild($dom->createElement('userId', (string) $user));
 
-        $periodElem = $dom->createElement('period', (string)$period);
+        $periodElem = $dom->createElement('period', (string) $period);
         if ($periodUnit) {
             $periodElem->setAttribute('unit', $periodUnit);
         }
@@ -152,12 +179,18 @@ class HRDApi
 
 
     /**
-     * @param string $id
-     * @param int $period
-     * @param string $periodUnit
+     * Odnowienie certyfikatu w systemie
+     *
+     * @param string      $id
+     * @param int         $period
+     * @param string      $periodUnit
      * @param string|null $approverEmail
      * @param string|null $csr
+     *
      * @return int
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function certRenew(
         string $id,
@@ -170,7 +203,7 @@ class HRDApi
 
         $elem->appendChild($dom->createElement('id', $id));
 
-        $periodElem = $dom->createElement('period', (string)$period);
+        $periodElem = $dom->createElement('period', (string) $period);
         if ($periodUnit) {
             $periodElem->setAttribute('unit', $periodUnit);
         }
@@ -197,7 +230,7 @@ class HRDApi
         list($dom, $elem) = $this->getAPIDOMDocument('cert', 'list');
 
         if ($lastId !== null) {
-            $elem->appendChild($dom->createElement('lastId', (string)$lastId));
+            $elem->appendChild($dom->createElement('lastId', (string) $lastId));
         }
         yield from $this->sendStringYieldResponse($dom, 'cert/list/id', 'cert/list');
     }
@@ -205,26 +238,32 @@ class HRDApi
     /**
      * @param int $id
      * @return array|bool
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function certContactInfo(int $id)
     {
         list($dom, $elem) = $this->getAPIDOMDocument('cert', 'contactInfo');
-        $elem->appendChild($dom->createElement('id', (string)$id));
+        $elem->appendChild($dom->createElement('id', (string) $id));
 
         return $this->sendArrayResponse($dom, 'cert/contactInfo/*');
     }
 
     /**
-     * Pobiera liste kontaktów certyfikatowych dla podanego CSA
-     * @param int $userId
-     * @param int|null $lastId
+     * Pobiera listę kontaktów certyfikatowych
+     * @param int|null $lastId id ostatniego certyfikatu
+     *
      * @return \Generator
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function certContactList(int $lastId = null)
     {
         list($dom, $elem) = $this->getAPIDOMDocument('cert', 'contactList');
         if ($lastId !== null) {
-            $elem->appendChild($dom->createElement('lastId', (string)$lastId));
+            $elem->appendChild($dom->createElement('lastId', (string) $lastId));
         }
 
         yield from $this->sendStringYieldResponse($dom, 'cert/contactList/id', 'cert/contactList');
@@ -240,10 +279,14 @@ class HRDApi
      * unknown status domeny nie jest dostępny, spróbuj ponownie później
      * createOnly status występuje dla domen polskich, oznacza on możliwość jedynie bezpośredniej rejestracji domeny, bez jej ówczesnej rezerwacji
      *
-     * @param array $domains tablica zawierająca listę domen którą chcesz sprawdzić
-     * @param callable|null $callback funkcja która jako pierwszy parametr przyjmuje tablice z domenami I ich statusami
-     * @param boolean $partialCallback zmienna określa czy funkcja callback może być wywoływana kilka razy czy musi być wywołana raz
+     * @param array         $domains         tablica zawierająca listę domen którą chcesz sprawdzić
+     * @param callable|null $callback        funkcja która jako pierwszy parametr przyjmuje tablice z domenami I ich statusami
+     * @param bool          $partialCallback zmienna określa czy funkcja callback może być wywoływana kilka razy czy musi być wywołana raz
+     *
      * @return \Generator
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function domainCheck(array $domains, callable $callback = null, bool $partialCallback = true)
     {
@@ -286,6 +329,11 @@ class HRDApi
      *
      * @param string $name domena dla której chciałbyś informację
      * @return array tablica w której są umieszczone informację o domenie dla której chciałbyś pobrać informacje
+     *
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
+     *
      */
     public function domainInfo(string $name)
     {
@@ -302,13 +350,17 @@ class HRDApi
      * [['name' => 'ns1.eksampl.pl', 'ipv4'=>'1.2.3.4', 'ipv6'=>'2001:0db8:0000:0000:0000:0000:1428:57ab'], ...]
      * Przy czym określony musi być minimum 1 adres IP danego typu (mogą być podane jednocześnie ipv4 i ipv6
      *
-     * @param string $domain Nazwa domeny którą chciałbyś zarejestrować
-     * @param int $user ID użytkownika na którą ma być zarejestrowana domena, ID tworzone jest funkcją userCreate
-     * @param array $ns Tablica zawierające DNSy które chcemy przypisać do tworzonej domeny, muszą być podane min. 2. Jeżeli DNSy są tworzone w danej nazwie domeny to trzeba podać dla nich adresy IP
-     * @param int $period okres w latach na którą ma być zarejestrowana domena
-     * @param boolean $privacyProtect Parametr określający czy domena ma być zarejestrowana z usługą ukrywania danych Abonenta domeny w wyszukiwarkach WHOIS jeżeli jest to usługa dostępna dla danego rozszerzenia domen. W przypadku podania wartości true dla domeny która nie obsługuje Privacy protect domena zostanie zarejestrowana z widocznymi danymi w bazach WHOIS
-     * @param array $additionalData tablica zawierająca dodatkowe dane wymagane lub opcjonalne do rejestracji tego rozszerzenia domen.
-     * @return int ID zlecenia
+     * @param string $domain         Nazwa domeny którą chciałbyś zarejestrować
+     * @param int    $user           ID użytkownika na którą ma być zarejestrowana domena, ID tworzone jest funkcją userCreate
+     * @param array  $ns             Tablica zawierające DNSy które chcemy przypisać do tworzonej domeny, muszą być podane min. 2. Jeżeli DNSy są tworzone w danej nazwie domeny to trzeba podać dla nich adresy IP
+     * @param int    $period         okres w latach na którą ma być zarejestrowana domena
+     * @param bool   $privacyProtect Parametr określający czy domena ma być zarejestrowana z usługą ukrywania danych Abonenta domeny w wyszukiwarkach WHOIS jeżeli jest to usługa dostępna dla danego rozszerzenia domen. W przypadku podania wartości true dla domeny która nie obsługuje Privacy protect domena zostanie zarejestrowana z widocznymi danymi w bazach WHOIS
+     * @param array  $additionalData tablica zawierająca dodatkowe dane wymagane lub opcjonalne do rejestracji tego rozszerzenia domen.
+     *
+     * @return int
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function domainCreate(
         string $domain,
@@ -322,8 +374,8 @@ class HRDApi
         /* @var \DOMElement $elem */
         list($dom, $elem) = $this->getAPIDOMDocument('domain', 'create');
         $elem->appendChild($dom->createElement('name', $this->idnToAscii($domain)));
-        $elem->appendChild($dom->createElement('user', (string)$user));
-        $elem->appendChild($dom->createElement('period', (string)$period));
+        $elem->appendChild($dom->createElement('user', (string) $user));
+        $elem->appendChild($dom->createElement('period', (string) $period));
         $elem->appendChild($dom->createElement('privacyProtect', ($privacyProtect ? 'true' : 'false')));
         $nsElem = $dom->createElement('ns');
         $this->nsToXml($nsElem, $dom, $ns);
@@ -338,14 +390,21 @@ class HRDApi
     }
 
     /**
+     * utworzenie rezerwacji domeny .pl w systemie
      * @param string $domain
+     * @param int    $csaId
      * @return int
+     *
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
-    public function domainBook(string $domain)
+    public function domainBook(string $domain, int $csaId)
     {
         /* @var \DOMDocument $dom */
         /* @var \DOMElement $elem */
         list($dom, $elem) = $this->getAPIDOMDocument('domain', 'book');
+        $elem->appendChild($dom->createElement('user', $csaId));
         $elem->appendChild($dom->createElement('name', $this->idnToAscii($domain)));
 
         return $this->sendIntResponse($dom, 'domain/book/actionId');
@@ -353,15 +412,19 @@ class HRDApi
 
 
     /**
-     * Anulowanie cesji/transferu wew. przez przejmującego domene
-     * @param int $id
+     * Anulowanie cesji/transferu wew. przez przejmującego domenę
+     * @param int    $id
      * @param string $ip
+     *
      * @return bool
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function domainTradeAssigneeCancel(int $id, string $ip)
     {
         list($dom, $elem) = $this->getAPIDOMDocument('domain', 'tradeAssigneeCancel');
-        $elem->appendChild($dom->createElement('id', (string)$id));
+        $elem->appendChild($dom->createElement('id', (string) $id));
         $elem->appendChild($dom->createElement('ip', $ip));
 
         return $this->sendVoidResponse($dom, 'domain/tradeAssigneeCancel');
@@ -369,66 +432,126 @@ class HRDApi
 
     /**
      * Anulowanie cesji/transferu wew. przez zrzekającego się domeny
-     * @param int $id
+     * @param int    $id
      * @param string $ip
+     *
      * @return bool
+     *
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function domainTradeAssignorCancel(int $id, string $ip)
     {
         list($dom, $elem) = $this->getAPIDOMDocument('domain', 'tradeAssignorCancel');
-        $elem->appendChild($dom->createElement('id', (string)$id));
+        $elem->appendChild($dom->createElement('id', (string) $id));
         $elem->appendChild($dom->createElement('ip', $ip));
 
         return $this->sendVoidResponse($dom, 'domain/tradeAssignorCancel');
     }
 
     /**
-     * @param string $domain
-     * @param int $user
-     * @param string $pw
-     * @param int $period
+     * Anulowanie cesji/transferu wew. przez CSP
+     * @param int    $id
+     * @param string $ip
+     *
+     * @return bool
+     *
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
+     */
+    public function domainTradeCancel(int $id, string $ip)
+    {
+        list($dom, $elem) = $this->getAPIDOMDocument('domain', 'tradeCancel');
+        $elem->appendChild($dom->createElement('id', (string) $id));
+        $elem->appendChild($dom->createElement('ip', $ip));
+
+        return $this->sendVoidResponse($dom, 'domain/tradeCancel');
+    }
+
+
+    /**
+     * Pobieranie adresu email kontaktu
+     * @param string $domain nazwa domeny
+     * @param string $pw     kod authinfo
+     *
+     * @return bool
+     *
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
+     */
+    public function domainTransferRegistrantEmail(string $domain, string $pw)
+    {
+        list($dom, $elem) = $this->getAPIDOMDocument('domain', 'transferRegistrantEmail');
+        $elem->appendChild($dom->createElement('name', $this->idnToAscii($domain)));
+        $elem->appendChild($dom->createElement('pw', $pw));
+
+        return $this->sendStringResponse($dom, 'domain/transferRegistrantEmail/email');
+    }
+
+
+    /**
+     * @param string $domain nazwa domeny
+     * @param int    $user   ID użytkownika przyjmującego domenę
+     * @param string $pw     kod authinfo
+     * @param int    $period opcjonalny parametry jeżeli chcemy mieć transfer z odnowieniem
+     *
      * @return int
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function domainTransfer(string $domain, int $user, string $pw, int $period = 0)
     {
         list($dom, $elem) = $this->getAPIDOMDocument('domain', 'transfer');
         $elem->appendChild($dom->createElement('name', $this->idnToAscii($domain)));
-        $elem->appendChild($dom->createElement('user', (string)$user));
+        $elem->appendChild($dom->createElement('user', (string) $user));
 
         if ($period > 0) {
-            $elem->appendChild($dom->createElement('period', (string)$period));
+            $elem->appendChild($dom->createElement('period', (string) $period));
         }
 
-        $elem->appendChild($dom->createElement('pw', $pw));
-        if ($period) {
-            $elem->appendChild($dom->createElement('period', (string)$period));
-        }
+        $elem->appendChild($dom->createElement('pw', htmlspecialchars($pw)));
+
 
         return $this->sendIntResponse($dom, 'domain/transfer/actionId');
     }
 
     /**
      * Status transferu
-     * @param int $id
-     * @return string
+     * możliwe statusy: created (utworzone), cancelled(anulowane), failed(nieudane), completed(zakończone), authinfo (nieprawidłowy kod authinfo)
+     *
+     * @param int $id id akcji
+     *
+     * @return array|bool
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function domainTransferStatus(int $id)
     {
         list($dom, $elem) = $this->getAPIDOMDocument('domain', 'transferStatus');
-        $elem->appendChild($dom->createElement('id', (string)$id));
+        $elem->appendChild($dom->createElement('id', (string) $id));
 
         return $this->sendArrayResponse($dom, 'domain/transferStatus/*', ['assignorId']);
     }
 
     /**
      * Potwierdzenie płatności za cesje
+     *
      * @param int $id
+     *
      * @return bool
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function domainTradePayerConfirm(int $id)
     {
         list($dom, $elem) = $this->getAPIDOMDocument('domain', 'tradePayerConfirm');
-        $elem->appendChild($dom->createElement('id', (string)$id));
+        $elem->appendChild($dom->createElement('id', (string) $id));
 
         return $this->sendVoidResponse($dom, 'domain/tradePayerConfirm');
     }
@@ -437,16 +560,20 @@ class HRDApi
      * Cesja oraz trasnfer wewnętrzny - zainicjowanie cesji
      * po zainicjowaniu cesji, zmiana kodu cesji dla domeny nie ma znaczenia
      * @param string $domain
-     * @param int $user
+     * @param int    $user
      * @param string $pw
      * @return int
+     *
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function domainTrade(string $domain, int $user, string $pw)
     {
         list($dom, $elem) = $this->getAPIDOMDocument('domain', 'trade');
         $elem->appendChild($dom->createElement('name', $this->idnToAscii($domain)));
-        $elem->appendChild($dom->createElement('user', (string)$user));
-        $elem->appendChild($dom->createElement('pw', $pw));
+        $elem->appendChild($dom->createElement('user', (string) $user));
+        $elem->appendChild($dom->createElement('pw', htmlspecialchars($pw)));
 
         return $this->sendIntResponse($dom, 'domain/trade/actionId');
     }
@@ -454,7 +581,11 @@ class HRDApi
     /**
      * Status cesji
      * @param int $id
-     * @return string
+     *
+     * @return array|bool
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function domainTradeStatus(int $id)
     {
@@ -467,10 +598,13 @@ class HRDApi
     /**
      * @param string $domain
      * @param string $currentExpirationDate
-     * @param int $period
-     * @param bool $periodInDays
+     * @param int    $period
+     * @param bool   $periodInDays
      *
      * @return int
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function domainRenew(
         string $domain,
@@ -483,7 +617,7 @@ class HRDApi
         list($dom, $elem) = $this->getAPIDOMDocument('domain', 'renew');
         $elem->appendChild($dom->createElement('name', $this->idnToAscii($domain)));
         $elem->appendChild($dom->createElement('currentExpirationDate', $currentExpirationDate));
-        $periodElem = $dom->createElement('period', (string)$period);
+        $periodElem = $dom->createElement('period', (string) $period);
         if ($periodInDays) {
             $periodElem->setAttribute('unit', 'd');
         }
@@ -494,10 +628,14 @@ class HRDApi
 
     /**
      * Edycja DNSów dla istniejącej domeny
-     * @param string $domain
-     * @param array $ns
      *
-     * @return int
+     * @param string $domain
+     * @param array  $ns
+     *
+     * @return int|null
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function domainUpdate(string $domain, array $ns)
     {
@@ -516,6 +654,9 @@ class HRDApi
      *
      * @param string|null $lastName Parametr w którym należy podać pełną nazwę ostatniej domeny z poprzednio pobranej paczki.
      * @return \Generator
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function domainList(string $lastName = null)
     {
@@ -536,10 +677,14 @@ class HRDApi
      * taken opcja jest zarejestrowana przez inny podmiot i tym samym NIE jest dostępna do rejestracji
      * unknown status opcji nie jest dostępny, spróbuj ponownie później
      *
-     * @param array $domains tablica zawierająca listę domen którą chcesz sprawdzić
-     * @param callable|null $callback funkcja która jako pierwszy parametr przyjmuje tablice z domenami I ich statusami
-     * @param boolean $partialCallback zmienna określa czy funkcja callback może być wywoływana kilka razy czy musi być wywołana raz
+     * @param array         $domains         tablica zawierająca listę domen którą chcesz sprawdzić
+     * @param callable|null $callback        funkcja która jako pierwszy parametr przyjmuje tablice z domenami I ich statusami
+     * @param boolean       $partialCallback zmienna określa czy funkcja callback może być wywoływana kilka razy czy musi być wywołana raz
+     *
      * @return \Generator
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function domainFutureCheck(array $domains, callable $callback = null, bool $partialCallback = true)
     {
@@ -581,7 +726,11 @@ class HRDApi
      * Funkcja służy do pobierania informacji o domenie, domena ta musi być obsługiwana przez konkretnego partnera (nie można pobrać informacji dla domeny która nie jest przez Ciebie obsługiwana
      *
      * @param string $name domena dla której chciałbyś informację
-     * @return array tablica w której są umieszczone informację o domenie dla której chciałbyś pobrać informacje
+     * @return array|bool tablica w której są umieszczone informację o domenie dla której chciałbyś pobrać informacje
+     *
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function domainFutureInfo(string $name)
     {
@@ -596,23 +745,33 @@ class HRDApi
     /**
      * Tworzenie opcji na domenę OPCJA zakładana jest na 3 lata, tylko dla .pl
      * @param string $domain
-     * @param int $user
+     * @param int    $user
+     *
      * @return int
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function domainFutureCreate(string $domain, int $user)
     {
         list($dom, $elem) = $this->getAPIDOMDocument('domain', 'futureCreate');
         $elem->appendChild($dom->createElement('name', $this->idnToAscii($domain)));
-        $elem->appendChild($dom->createElement('user', (string)$user));
+        $elem->appendChild($dom->createElement('user', (string) $user));
 
         return $this->sendIntResponse($dom, 'domain/futureCreate/actionId');
     }
 
 
     /**
-     * @param string $domain
-     * @param string $currentExpirationDate
-     * @return int
+     * Odnowienie opcji dla domeny
+     *
+     * @param string $domain                nazwa domeny
+     * @param string $currentExpirationDate data odnowienia w UTC
+     * @return int                          id akcji
+     *
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function domainFutureRenew(string $domain, string $currentExpirationDate)
     {
@@ -631,6 +790,9 @@ class HRDApi
      *
      * @param string|null $lastName Parametr w którym należy podać pełną nazwę ostatniej domeny z poprzednio pobranej paczki.
      * @return \Generator
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function domainFutureList(string $lastName = null)
     {
@@ -646,23 +808,29 @@ class HRDApi
     /**
      * @param int $id
      *
-     * @return array
+     * @return array|bool
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function domainNsGroupInfo(int $id)
     {
         /* @var \DOMDocument $dom */
         /* @var \DOMElement $elem */
         list($dom, $elem) = $this->getAPIDOMDocument('domain', 'nsGroupInfo');
-        $elem->appendChild($dom->createElement('id', (string)$id));
+        $elem->appendChild($dom->createElement('id', (string) $id));
 
         return $this->sendArrayResponse($dom, 'domain/nsGroupInfo/*', [], null, null, 'domain/nsGroupInfo/ns/');
     }
 
     /**
      * @param string $name
-     * @param array $ns
+     * @param array  $ns
      *
      * @return int
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function domainNsGroupCreate(string $name, array $ns)
     {
@@ -676,18 +844,22 @@ class HRDApi
     }
 
     /**
-     * @param int $id
-     * @param string|null $name
-     * @param array|null $ns
+     * Aktualizacja grupy name serwerów
+     * @param int         $id   id grupy
+     * @param string|null $name nazwa grupy
+     * @param array|null  $ns   tabele nameserverów
      *
-     * @return int
+     * @return bool
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function domainNsGroupUpdate(int $id, string $name = null, array $ns = null)
     {
         /* @var \DOMDocument $dom */
         /* @var \DOMElement $elem */
         list($dom, $elem) = $this->getAPIDOMDocument('domain', 'nsGroupUpdate');
-        $elem->appendChild($dom->createElement('id', (string)$id));
+        $elem->appendChild($dom->createElement('id', (string) $id));
         if ($name !== null) {
             $elem->appendChild($dom->createElement('name', $name));
         }
@@ -699,24 +871,33 @@ class HRDApi
     }
 
     /**
-     * @param int $id
+     * Usunięcie grupy nameserwerów
+     * @param int $id id grupy
      *
      * @return bool
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function domainNsGroupDelete(int $id)
     {
         /* @var \DOMDocument $dom */
         /* @var \DOMElement $elem */
         list($dom, $elem) = $this->getAPIDOMDocument('domain', 'nsGroupDelete');
-        $elem->appendChild($dom->createElement('id', (string)$id));
+        $elem->appendChild($dom->createElement('id', (string) $id));
 
         return $this->sendVoidResponse($dom, 'domain/nsGroupDelete');
     }
 
+
     /**
+     * Lista grup nameserwerów
      * @param int|null $lastId
      *
      * @return \Generator
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function domainNsGroupList(int $lastId = null)
     {
@@ -724,15 +905,19 @@ class HRDApi
         /* @var \DOMElement $elem */
         list($dom, $elem) = $this->getAPIDOMDocument('domain', 'nsGroupList');
         if ($lastId !== null) {
-            $elem->appendChild($dom->createElement('lastId', (string)$lastId));
+            $elem->appendChild($dom->createElement('lastId', (string) $lastId));
         }
         yield from $this->sendIntYieldResponse($dom, 'domain/nsGroupList/id', 'domain/nsGroupList');
     }
 
     /**
-     * @param string $name
+     * Pobieranie informacji o domenie z WHOIS
+     * @param string $name nazwa domeny
      *
      * @return string
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function domainWhois(string $name)
     {
@@ -747,8 +932,13 @@ class HRDApi
     /**
      * Funkcja służy do pobrania kontaktów domeny
      *
-     * @param string $name
+     * @param string $name nazwa domeny
+     *
      * @return array|bool
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
+     *
      */
     public function domainContactList(string $name)
     {
@@ -761,10 +951,15 @@ class HRDApi
     }
 
     /**
-     * Funkcja służy do ustawienia kontaktu technicznewgo domeny
+     * Funkcja służy do ustawienia kontaktu technicznego domeny
      *
-     * @param string $name
-     * @return array|bool
+     * @param string   $name
+     * @param int|null $techId
+     *
+     * @return int|null
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function domainContactSet(string $name, int $techId = null)
     {
@@ -785,6 +980,9 @@ class HRDApi
      * Pobieranie kodu transferu wewnętrznego
      * @param string $name Nazwa domeny
      * @return string Kod cesji
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function domainTradeGetPw(string $name)
     {
@@ -798,6 +996,9 @@ class HRDApi
      * Pobieranie kodu cesji
      * @param string $name
      * @return string
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function domainTradeInnerGetPw(string $name)
     {
@@ -808,21 +1009,12 @@ class HRDApi
     }
 
     /**
-     * Pobieranie kodu transferu
-     * @param string $name Nazwa domeny
-     * @return string Kod cesji
-     */
-    public function domainTransferGetPw(string $name)
-    {
-        list($dom, $elem) = $this->getAPIDOMDocument('domain', 'transferGetPw');
-        $elem->appendChild($dom->createElement('name', $this->idnToAscii($name)));
-
-        return $this->sendStringResponse($dom, 'domain/transferGetPw/pw');
-    }
-
-    /**
      * @param string $name
+     *
      * @return bool
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function domainEnablePP(string $name)
     {
@@ -834,7 +1026,11 @@ class HRDApi
 
     /**
      * @param string $name
+     *
      * @return bool
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function domainDisablePP(string $name)
     {
@@ -846,7 +1042,11 @@ class HRDApi
 
     /**
      * @param string $name
+     *
      * @return bool
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function domainBuyPP(string $name)
     {
@@ -858,7 +1058,12 @@ class HRDApi
 
     /**
      * @param string $name
+     * @param array  $rrsets
+     *
      * @return bool
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function domainDnsChange(string $name, $rrsets)
     {
@@ -875,11 +1080,15 @@ class HRDApi
     }
 
     /**
-     * Ustawia rekord MX dla domeny, działa tylko jesli domena jest zaparkowana na serwerach hrd
+     * Ustawia rekord MX dla domeny, działa tylko jeŚli domena jest zaparkowana na serwerach hrd
      *
-     * @param string $name Nazwa domeny
+     * @param string $name    Nazwa domeny
      * @param string $address Adres (ip lub alias)
      * @return bool
+     *
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function domainDnsSetMx(string $name, $address)
     {
@@ -899,11 +1108,15 @@ class HRDApi
     }
 
     /**
-     * Ustawia rekord A dla domeny, działa tylko jesli domena jest zaparkowana na serwerach hrd
+     * Ustawia rekord A dla domeny, działa tylko jeŚli domena jest zaparkowana na serwerach hrd
      *
      * @param string $name Nazwa domeny
-     * @param string $ip Ip na który ma wskazywac domena
+     * @param string $ip   Ip na który ma wskazywać domena
+     *
      * @return bool
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function domainDnsSetIp(string $name, $ip)
     {
@@ -928,11 +1141,15 @@ class HRDApi
     }
 
     /**
-     * Ustawia rekord CNAME dla domeny, działa tylko jesli domena jest zaparkowana na serwerach hrd
+     * Ustawia rekord CNAME dla domeny, działa tylko jeśli domena jest zaparkowana na serwerach hrd
      *
-     * @param string $name Nazwa domeny
-     * @param string $alias Alias na który ma wskazywac domena
+     * @param string $name  Nazwa domeny
+     * @param string $alias Alias na który ma wskazywać domena
+     *
      * @return bool
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function domainDnsSetAlias(string $name, $alias)
     {
@@ -957,43 +1174,54 @@ class HRDApi
     }
 
     /**
-     * Ustawia iframe - pod adresem domany będzie wyswietlał się iframe wskazujacy na podany url, działa tylko jesli domena jest zaparkowana na serwerach hrd
+     * Ustawia iframe - pod adresem domany będzie wyświetlał się iframe wskazujący na podany url, działa tylko jeśli domena jest zaparkowana na serwerach hrd
      *
      * @param string $name Nazwa domeny
-     * @param string $url Url na który będzie wskazywała domena
+     * @param string $url  Url na który będzie wskazywała domena
+     *
      * @return bool
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function domainDnsSetIframe(string $name, $url)
     {
-        return $this->domainDnsChange($name, [
+        return $this->domainDnsChange(
+            $name,
             [
-                'name' => $name . '.',
-                'type' => 'A',
-                'changetype' => 'DELETE'
-            ],
-            [
-                'name' => $name . '.',
-                'type' => 'CNAME',
-                'ttl' => 3600,
-                'changetype' => 'REPLACE',
-                'records' => [
-                    [
-                        'content' => 'dns.test.hrd.pl',
-                    ]
+                [
+                    'name'       => $name.'.',
+                    'type'       => 'A',
+                    'changetype' => 'DELETE'
                 ],
-                'comments' => [
-                    [
-                        'account' => 'redirect',
-                        'content' => $url,
+                [
+                    'name'       => $name.'.',
+                    'type'       => 'CNAME',
+                    'ttl'        => 3600,
+                    'changetype' => 'REPLACE',
+                    'records'    => [
+                        [
+                            'content' => 'dns.test.hrd.pl',
+                        ]
+                    ],
+                    'comments'   => [
+                        [
+                            'account' => 'redirect',
+                            'content' => $url,
+                        ]
                     ]
                 ]
             ]
-        ]);
+        );
     }
 
     /**
      * @param string $name
-     * @return array
+     *
+     * @return array|bool
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function domainDnsInfo(string $name)
     {
@@ -1001,14 +1229,17 @@ class HRDApi
         list($dom, $elem) = $this->getAPIDOMDocument('domain', 'dnsInfo');
         $elem->appendChild($dom->createElement('name', $this->idnToAscii($name)));
 
-        // TODO parse response
+
         return $this->sendArrayResponse($dom, 'domain/dnsInfo/*');
     }
 
     /**
      * @param string $domain
-     * @param bool $privacyProtect
-     * @return bool|null
+     * @param bool   $privacyProtect
+     * @return int|null
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function domainPrivacySet(string $domain, bool $privacyProtect)
     {
@@ -1021,15 +1252,20 @@ class HRDApi
 
     /**
      * Pobieranie wiadomości
+     *
      * @param int $id
+     *
      * @return array|bool
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function newsInfo(int $id)
     {
         /* @var \DOMDocument $dom */
         /* @var \DOMElement $elem */
         list($dom, $elem) = $this->getAPIDOMDocument('news', 'info');
-        $elem->appendChild($dom->createElement('id', (string)$id));
+        $elem->appendChild($dom->createElement('id', (string) $id));
 
         return $this->sendArrayResponse($dom, 'news/info/*', ['id']);
     }
@@ -1037,7 +1273,11 @@ class HRDApi
     /**
      * Pobieranie listy wiadomości
      * @param int $lastId
+     *
      * @return \Generator
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function newsList(int $lastId = 0)
     {
@@ -1045,7 +1285,7 @@ class HRDApi
         /* @var \DOMElement $elem */
         list($dom, $elem) = $this->getAPIDOMDocument('news', 'list');
         if ($lastId !== null) {
-            $elem->appendChild($dom->createElement('lastId', (string)$lastId));
+            $elem->appendChild($dom->createElement('lastId', (string) $lastId));
         }
         yield from $this->sendIntYieldResponse($dom, 'news/list/id', 'news/list');
     }
@@ -1056,13 +1296,17 @@ class HRDApi
      *
      * @param int $id id użytkownika
      * @return array tablica zawierająca dane użytkownika
+     *
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function userInfo(int $id)
     {
         /* @var \DOMDocument $dom */
         /* @var \DOMElement $elem */
         list($dom, $elem) = $this->getAPIDOMDocument('user', 'info');
-        $elem->appendChild($dom->createElement('id', (string)$id));
+        $elem->appendChild($dom->createElement('id', (string) $id));
 
         return $this->sendArrayResponse($dom, 'user/info/*', ['id']);
     }
@@ -1083,7 +1327,10 @@ class HRDApi
      * @param string $country Państwo zgodnie z standardem ISO 3166-1 alpha-2
      * @param string|null $representative Osoba reprezentant
      * @return int user id Numer id utworzonego użytkownika
+     *
+     * @throws HRDApiCommunicationException
      * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function userCreate(
         $type,
@@ -1108,7 +1355,7 @@ class HRDApi
                 break;
             case self::COMPANY:
                 $elem->appendChild($dom->createElement('companyType'));
-                $elem->appendChild($dom->createElement('representative', $representative));
+                $elem->appendChild($dom->createElement('representative', htmlspecialchars($representative)));
                 break;
             default:
                 throw new HRDApiIncorrectDataException('invalid type');
@@ -1122,8 +1369,8 @@ class HRDApi
         if ($fax !== null) {
             $elem->appendChild($dom->createElement('fax', $fax));
         }
-        $elem->appendChild($dom->createElement('name', $name));
-        $elem->appendChild($dom->createElement('street', $street));
+        $elem->appendChild($dom->createElement('name', htmlspecialchars($name)));
+        $elem->appendChild($dom->createElement('street', htmlspecialchars($street)));
         $elem->appendChild($dom->createElement('postcode', $postcode));
         $elem->appendChild($dom->createElement('city', $city));
         $elem->appendChild($dom->createElement('country', $country));
@@ -1135,17 +1382,18 @@ class HRDApi
      * Funkcja służy do aktualizowania danych danego użytkownika
      *
      * @param int $id numer id użytkownika
-     * @param string $email Adres e-mail użytkownika
      * @param string|null $mobilePhone format: +CC.XXXXXXXXX Telefon komórkowy w podanym formacie (CC – Country Code), np. +48.507540869
      * @param string|null $landlinePhone format: +CC.XXXXXXXXX Telefon stacjonarny w podanym formacie (CC – Country Code), np. +48.221003248
      * @param string|null $fax format: +CC.XXXXXXXXX fax w podanym formacie (CC – Country Code), np. +48.222502913
-     * @param string $name Nazwa użytkownika
      * @param string $street Ulica I numer budynku/lokalu
      * @param string $postcode kod pocztowy w formacie prawidłowym dla danego kraju
      * @param string $city Miasto
      * @param string $country Państwo zgodnie z standardem ISO 3166-1 alpha-2
-     * @param string|null $representative Osoba reprezentant
+     *
      * @return bool
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function userUpdate(
         $id,
@@ -1171,9 +1419,9 @@ class HRDApi
         if ($fax !== null) {
             $elem->appendChild($dom->createElement('fax', $fax));
         }
-        $elem->appendChild($dom->createElement('street', $street));
+        $elem->appendChild($dom->createElement('street', htmlspecialchars($street)));
         $elem->appendChild($dom->createElement('postcode', $postcode));
-        $elem->appendChild($dom->createElement('city', $city));
+        $elem->appendChild($dom->createElement('city', htmlspecialchars($city)));
         $elem->appendChild($dom->createElement('country', $country));
 
         return $this->sendVoidResponse($dom, 'user/update');
@@ -1185,7 +1433,11 @@ class HRDApi
      * Funkcja zwraca użytkowników jako generator.
      *
      * @param int $lastId Parametr w którym należy podać id ostatniego użytkownika z poprzednio pobranej paczki.
+     *
      * @return \Generator
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function userList(int $lastId = 0)
     {
@@ -1193,7 +1445,7 @@ class HRDApi
         /* @var \DOMElement $elem */
         list($dom, $elem) = $this->getAPIDOMDocument('user', 'list');
         if ($lastId !== null) {
-            $elem->appendChild($dom->createElement('lastId', (string)$lastId));
+            $elem->appendChild($dom->createElement('lastId', (string) $lastId));
         }
         yield from $this->sendIntYieldResponse($dom, 'user/list/id', 'user/list');
     }
@@ -1202,14 +1454,18 @@ class HRDApi
      * Funkcja służy do pobrania listy kontaktów użytkownika
      *
      * @param int $id id użytkownika
+     *
      * @return \Generator
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function userContactList(int $id)
     {
         /* @var \DOMDocument $dom */
         /* @var \DOMElement $elem */
         list($dom, $elem) = $this->getAPIDOMDocument('user', 'contactList');
-        $elem->appendChild($dom->createElement('id', (string)$id));
+        $elem->appendChild($dom->createElement('id', (string) $id));
 
         yield from $this->sendIntYieldResponse($dom, 'user/contactList/id', 'user/contactList');
     }
@@ -1218,7 +1474,11 @@ class HRDApi
      * Funkcja ta służy do pobierania informacji o kontakcie
      *
      * @param int $id id kontaktu
-     * @return \Generator
+     *
+     * @return array|bool
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function userContactInfo(int $id)
     {
@@ -1232,8 +1492,13 @@ class HRDApi
 
     /**
      * Wyświetla informacje z bieżącym statusem wykonywanej operacji
+     *
      * @param int $id
-     * @return array
+     *
+     * @return array|bool
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function actionInfo(int $id)
     {
@@ -1248,7 +1513,11 @@ class HRDApi
     /**
      * Pobiera listę wykonywanych operacji
      * @param int $lastId
+     *
      * @return \Generator
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function actionList(int $lastId = 0)
     {
@@ -1256,13 +1525,13 @@ class HRDApi
         /* @var \DOMElement $elem */
         list($dom, $elem) = $this->getAPIDOMDocument('action', 'list');
         if ($lastId !== null) {
-            $elem->appendChild($dom->createElement('lastId', (string)$lastId));
+            $elem->appendChild($dom->createElement('lastId', (string) $lastId));
         }
         yield from $this->sendIntYieldResponse($dom, 'action/list/id', 'action/list');
     }
 
     /**
-     * Funkcja słuzy do zalogowania się na konto za pomocą tokena uzyskanego przy poprzednim logowaniu
+     * Funkcja służy do zalogowania się na konto za pomocą tokena uzyskanego przy poprzednim logowaniu
      *
      * @param callable $hash Funkcja zwracająca hash dla danego konta do którego chcemy się logować
      * @param callable $token Token uzyskany przy poprzednim logowaniu
@@ -1285,11 +1554,11 @@ class HRDApi
     /**
      * Funkcja służy do pobrania instancji klasy na podstawie podanych danych do logowania.
      *
-     * @param callable $hash Funkcja zwracająca hash dla danego konta do którego chcemy się logować
+     * @param callable $hash  Funkcja zwracająca hash dla danego konta do którego chcemy się logować
      * @param callable $login Funkcja zwracająca login dla danego konta do którego chcemy się logować
-     * @param callable $pass Funkcja zwracająca hasło dla danego konta do którego chcemy się logować
-     * @param string $type typ konta do którego się logujemy.
-     * @return HRDApi Instancja klasy HRDApi
+     * @param callable $pass  Funkcja zwracająca hasło dla danego konta do którego chcemy się logować
+     * @param string $type    typ konta do którego się logujemy.
+     * @return mixed Instancja klasy HRDApi
      */
     public static function getInstanceByPass(
         callable $hash,
@@ -1344,7 +1613,7 @@ class HRDApi
         $toReturn['ns'] = [];
         $resultGroup = $xpath->query($prefix . 'group');
         if ($resultGroup->length === 1) {
-            $toReturn['ns']['group'] = (int)$resultGroup->item(0)->textContent;
+            $toReturn['ns']['group'] = (int) $resultGroup->item(0)->textContent;
 
             return;
         }
@@ -1652,9 +1921,12 @@ class HRDApi
 
     /**
      * @param \DOMDocument $dom
-     * @param string $path
+     * @param string       $path
      *
      * @return string
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     protected function sendStringResponse(\DOMDocument $dom, string $path)
     {
@@ -1671,10 +1943,14 @@ class HRDApi
 
     /**
      * @param \DOMDocument $dom
-     * @param string $path
-     * @param string|null $additionalPath
+     * @param string       $path
+     * @param string|null  $additionalPath
+     * @param bool|null    $convertIdn
      *
      * @return \Generator|void
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     protected function sendStringYieldResponse(\DOMDocument $dom, string $path, string $additionalPath = null, bool $convertIdn = null)
     {
@@ -1700,9 +1976,12 @@ class HRDApi
 
     /**
      * @param \DOMDocument $dom
-     * @param string $path
+     * @param string       $path
      *
      * @return int
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     protected function sendIntResponse(\DOMDocument $dom, string $path)
     {
@@ -1714,16 +1993,19 @@ class HRDApi
         if ($result->length === 0) {
             $this->parseError($xpath);
         } else {
-            return (int)$result->item(0)->textContent;
+            return (int) $result->item(0)->textContent;
         }
     }
 
     /**
      * @param \DOMDocument $dom
-     * @param string $path
-     * @param string|null $additionalPath
+     * @param string       $path
+     * @param string|null  $additionalPath
      *
      * @return \Generator|void
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     protected function sendIntYieldResponse(\DOMDocument $dom, string $path, string $additionalPath = null)
     {
@@ -1738,16 +2020,19 @@ class HRDApi
             $this->parseError($xpath);
         } else {
             for ($i = 0, $l = $result->length; $i < $l; $i++) {
-                yield (int)$result->item($i)->textContent;
+                yield (int) $result->item($i)->textContent;
             }
         }
     }
 
     /**
      * @param \DOMDocument $dom
-     * @param string $path
+     * @param string       $path
      *
      * @return bool
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     protected function sendVoidResponse(\DOMDocument $dom, string $path)
     {
@@ -1764,9 +2049,13 @@ class HRDApi
 
     /**
      * @param \DOMDocument $dom
-     * @param string $path
+     * @param string       $path
+     * @param string       $intPath
      *
-     * @return bool|null
+     * @return int|null
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     protected function sendIntOrVoidResponse(\DOMDocument $dom, string $path, string $intPath)
     {
@@ -1780,7 +2069,7 @@ class HRDApi
 
         $result = $xpath->query('/api/' . $intPath);
         if ($result->length === 1) {
-            return (int)$result->item(0)->textContent;
+            return (int) $result->item(0)->textContent;
         } else {
             return null;
         }
@@ -1788,12 +2077,17 @@ class HRDApi
 
     /**
      * @param \DOMDocument $dom
-     * @param string $path
-     * @param array $castToIntKeys
-     * @param string|null $dnsPath
-     * @param string|null $additionalPath
+     * @param string       $path
+     * @param array        $castToIntKeys
+     * @param string|null  $dnsPath
+     * @param string|null  $additionalPath
+     * @param string|null  $dnsGroupPath
+     * @param bool|null    $convertIdn
      *
      * @return array|bool
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     protected function sendArrayResponse(
         \DOMDocument $dom,
@@ -1850,6 +2144,10 @@ class HRDApi
 
     /**
      * @param callable $token
+     *
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     protected function loginByToken(callable $token)
     {
@@ -1868,7 +2166,11 @@ class HRDApi
     /**
      * @param callable $login
      * @param callable $pass
-     * @param string $type
+     * @param string   $type
+     *
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     protected function loginByPass(callable $login, callable $pass, string $type)
     {
@@ -1884,8 +2186,6 @@ class HRDApi
         $result = $xpath->query('/api/token/text()');
         if ($result->length > 0) {
             $this->token = $result->item(0)->textContent;
-        } else {
-
         }
     }
 
@@ -1930,8 +2230,7 @@ class HRDApi
                 stream_context_set_option($context, 'ssl', 'verify_peer', false);
                 stream_context_set_option($context, 'ssl', 'verify_peer_name', false);
             }
-            $this->fp = stream_socket_client('ssl://' . $this->host . ':' . $this->port, $errno, $errstr,
-                $this->timeout, STREAM_CLIENT_CONNECT, $context);
+            $this->fp = stream_socket_client('ssl://' . $this->host . ':' . $this->port, $errno, $errstr, $this->timeout, STREAM_CLIENT_CONNECT, $context);
             if ($this->fp === false) {
                 throw new HRDApiCommunicationException('connect error');
             }
@@ -1988,6 +2287,9 @@ class HRDApi
 
     /**
      * @return \Generator
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function partnerGetPricings()
     {
@@ -1995,17 +2297,20 @@ class HRDApi
         /* @var \DOMElement $elem */
         list($dom, $elem) = $this->getAPIDOMDocument('partner', 'getPricings');
 
-        yield from $this->sendPricingYeldResponse($dom, 'partner/pricings/pricing', 'partner/pricings');
+        yield from $this->sendPricingYieldResponse($dom, 'partner/pricings/pricing', 'partner/pricings');
     }
 
     /**
      * @param \DOMDocument $dom
-     * @param string $path
-     * @param string|null $additionalPath
+     * @param string       $path
+     * @param string       $additionalPath
      *
      * @return \Generator|void
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
-    protected function sendPricingYeldResponse(\DOMDocument $dom, string $path, string $additionalPath)
+    protected function sendPricingYieldResponse(\DOMDocument $dom, string $path, string $additionalPath)
     {
         $this->send($dom);
         $responseDom = $this->read();
@@ -2051,6 +2356,11 @@ class HRDApi
         }
     }
 
+    /**
+     * Konwersja cennika do postaci array
+     * @param array       $toReturn
+     * @param \DOMElement $item
+     */
     public function parsePricing(array &$toReturn, \DOMElement $item)
     {
         $items = $item->childNodes;
@@ -2090,6 +2400,9 @@ class HRDApi
 
     /**
      * @return \Generator
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function partnerGetPricingsList()
     {
@@ -2103,6 +2416,11 @@ class HRDApi
      *
      * @param string $name nazwa usługi
      * @return array tablica zawierająca ceny dla danej usługi
+     *
+     * @return array|bool
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function partnerPricingServiceInfo(string $name)
     {
@@ -2118,7 +2436,10 @@ class HRDApi
      * @param null $assigneeId - id przejmującego
      * @param null $assignorId - id przekazującego
      *
-     * @return array|bool
+     * @return bool
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function partnerResendTradeMail(int $id, $assigneeId = null, $assignorId = null)
     {
@@ -2137,7 +2458,11 @@ class HRDApi
     /**
      * funkcja pobiera tablice ustawień
      *
-     * @return array tablica zawierająca ustawienia (klucz -> wartość)
+     * @return array|void tablica zawierająca ustawienia (klucz -> wartość)
+     *
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function getKeys()
     {
@@ -2182,7 +2507,13 @@ class HRDApi
     /**
      * funkcja ustawia ustawienie
      *
-     * @return array tablica zawierająca ustawienia (klucz -> wartość)
+     * @param $key
+     * @param $value
+     *
+     * @return bool
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function setKey($key, $value)
     {
@@ -2194,6 +2525,7 @@ class HRDApi
     }
 
     /**
+     * Utworzenie kontaktu domenowego
      * @param int|null $userId
      * @param string $type
      * @param string|null $org
@@ -2207,7 +2539,9 @@ class HRDApi
      * @param string $country
      * @param string $email
      * @return int
+     * @throws HRDApiCommunicationException
      * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function partnerContactCreate(
         int $userId = null,
@@ -2236,19 +2570,19 @@ class HRDApi
                 break;
             case self::COMPANY:
                 $elem->appendChild($dom->createElement('companyType'));
-                $elem->appendChild($dom->createElement('org', $org));
+                $elem->appendChild($dom->createElement('org', htmlspecialchars($org)));
                 break;
             default:
                 throw new HRDApiIncorrectDataException('invalid type');
         }
-        $elem->appendChild($dom->createElement('name', $name));
+        $elem->appendChild($dom->createElement('name',htmlspecialchars($name)));
         $elem->appendChild($dom->createElement('voice', $voice));
         if ($fax) {
             $elem->appendChild($dom->createElement('fax', $fax));
         }
-        $elem->appendChild($dom->createElement('street', $street));
+        $elem->appendChild($dom->createElement('street', htmlspecialchars($street)));
         $elem->appendChild($dom->createElement('postcode', $postcode));
-        $elem->appendChild($dom->createElement('city', $city));
+        $elem->appendChild($dom->createElement('city', htmlspecialchars($city)));
         $elem->appendChild($dom->createElement('sp', $sp));
         $elem->appendChild($dom->createElement('country', $country));
         $elem->appendChild($dom->createElement('email', $email));
@@ -2257,6 +2591,7 @@ class HRDApi
     }
 
     /**
+     * Aktualizacja kontaktu domenowego
      * @param int $contactId
      * @param string|null $org
      * @param string $name
@@ -2268,7 +2603,10 @@ class HRDApi
      * @param string $sp
      * @param string $country
      * @param string $email
-     * @return bool
+     * @return int|null
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function partnerContactUpdate(
         int $contactId,
@@ -2290,18 +2628,18 @@ class HRDApi
         $elem->appendChild($dom->createElement('id', $contactId));
 
         if ($org) {
-            $elem->appendChild($dom->createElement('org', $org));
+            $elem->appendChild($dom->createElement('org', htmlspecialchars($org)));
         }
 
-        $elem->appendChild($dom->createElement('name', $name));
+        $elem->appendChild($dom->createElement('name', htmlspecialchars($name)));
         $elem->appendChild($dom->createElement('voice', $voice));
         if ($fax) {
             $elem->appendChild($dom->createElement('fax', $fax));
         }
 
-        $elem->appendChild($dom->createElement('street', $street));
+        $elem->appendChild($dom->createElement('street', htmlspecialchars($street)));
         $elem->appendChild($dom->createElement('postcode', $postcode));
-        $elem->appendChild($dom->createElement('city', $city));
+        $elem->appendChild($dom->createElement('city', htmlspecialchars($city)));
         $elem->appendChild($dom->createElement('sp', $sp));
         $elem->appendChild($dom->createElement('country', $country));
         $elem->appendChild($dom->createElement('email', $email));
@@ -2310,8 +2648,12 @@ class HRDApi
     }
 
     /**
+     * Usuwanie kontaktu domenowego
      * @param int $contactId
-     * @return bool|null
+     * @return int|null
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function partnerContactDelete(int $contactId)
     {
@@ -2325,7 +2667,11 @@ class HRDApi
 
     /**
      * @param int $contactId
+
      * @return array|bool
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function partnerContactInfo(int $contactId)
     {
@@ -2337,10 +2683,15 @@ class HRDApi
         return $this->sendArrayResponse($dom, 'partner/contactInfo/*');
     }
 
+
     /**
-     * @param int $userId
+     * @param int|null $userId
      * @param int|null $lastId
+     *
      * @return \Generator
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function partnerContactList(int $userId = null, int $lastId = null)
     {
@@ -2356,12 +2707,78 @@ class HRDApi
         yield from $this->sendIntYieldResponse($dom, 'partner/contactList/id', 'partner/contactList');
     }
 
+
     /**
-     * Create host
+     * Dodaje rekord DNSSEC dla wskazanej domeny
+     * @param $domain
+     * @param $alg
+     * @param $digestType
+     * @param $digest
+     * @param $key
+     *
+     * @return int
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
+     */
+    public function domainDnsSecAdd($domain,$alg, $digestType, $digest, $key)
+    {
+        list($dom, $elem) = $this->getAPIDOMDocument('domain', 'dnssecAdd');
+        $elem->appendChild($dom->createElement('name', $domain));
+        $elem->appendChild($dom->createElement('alg', $alg));
+        $elem->appendChild($dom->createElement('digestType', $digestType));
+        $elem->appendChild($dom->createElement('digest', $digest));
+        if (in_array($key, ['zsk', 'ksk'])) {
+            $elem->appendChild($dom->createElement('keyType', $key));
+        } else
+        {
+            $elem->appendChild($dom->createElement('keyTag', $key));
+        }
+
+        return $this->sendIntResponse($dom, 'domain/dnssecAdd/actionId');
+    }
+
+
+    /**
+     * Usuwa wskazany rekord DNSSEC dla domeny
+     * @param $domain
+     * @param $alg
+     * @param $digestType
+     * @param $digest
+     * @param $key
+     *
+     * @return int
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
+     */
+    public function domainDnsSecDelete($domain,$alg, $digestType, $digest, $key)
+    {
+        list($dom, $elem) = $this->getAPIDOMDocument('domain', 'dnssecDelete');
+        $elem->appendChild($dom->createElement('name', $domain));
+        $elem->appendChild($dom->createElement('alg', $alg));
+        $elem->appendChild($dom->createElement('digestType', $digestType));
+        $elem->appendChild($dom->createElement('digest', $digest));
+        if (in_array($key, ['zsk', 'ksk'])) {
+            $elem->appendChild($dom->createElement('keyType', $key));
+        } else
+        {
+            $elem->appendChild($dom->createElement('keyTag', $key));
+        }
+
+        return $this->sendIntResponse($dom, 'domain/dnssecDelete/actionId');
+    }
+    
+    /**
+     * Tworzenie hosta
      *
      * @param string $name
      * @param array $ip
-     * @return int
+     *
+     * @return int|null
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function domainHostCreate(string $name, array $ip)
     {
@@ -2383,10 +2800,44 @@ class HRDApi
     }
 
     /**
-     * Delete host
+     * Edycja hosta
      *
      * @param string $name
-     * @return int
+     * @param array $ip
+     *
+     * @return int|null
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
+     */
+    public function domainHostUpdate(string $name, array $ip)
+    {
+        list($dom, $elem) = $this->getAPIDOMDocument('domain', 'hostUpdate');
+        $elem->appendChild($dom->createElement('name', $this->idnToAscii($name)));
+
+        if (isset($ip['ipv4'])) {
+            foreach ($ip['ipv4'] as $ipv4) {
+                $elem->appendChild($dom->createElement('ipv4', $ipv4));
+            }
+        }
+        if (isset($ip['ipv6'])) {
+            foreach ($ip['ipv6'] as $ipv6) {
+                $elem->appendChild($dom->createElement('ipv6', $ipv6));
+            }
+        }
+
+        return $this->sendIntOrVoidResponse($dom, 'domain/hostUpdate', 'domain/hostUpdate/actionId');
+    }
+
+    /**
+     * Usuwanie hosta/glue recordu
+     *
+     * @param string $name
+     *
+     * @return int|null
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function domainHostDelete(string $name)
     {
@@ -2400,7 +2851,12 @@ class HRDApi
      * Funkcja służy do pobierania informacji o serwerze nazw - host, domena nadrzędna musi być obsługiwana przez konkretnego partnera
      *
      * @param string $name Host dla której chciałbyś informację
-     * @return array tablica w której są umieszczone informację o hoście dla której chciałbyś pobrać informacje
+     * @return array|bool tablica w której są umieszczone informację o hoście dla której chciałbyś pobrać informacje
+     *
+     * @return array|bool
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function domainHostInfo(string $name)
     {
@@ -2413,10 +2869,15 @@ class HRDApi
     }
 
     /**
-     * Funkcja służy do pobierania listy hostów wybranego parntnera
+     * Funkcja służy do pobierania listy hostów wybranego partnera
      *
      * @param string $lastName nazwa ostatnio pobranego hosta
-     * @return array tablica w której są umieszczone informację o hoście dla której chciałbyś pobrać informacje
+     * @return \Generator tablica w której są umieszczone informację o hoście dla której chciałbyś pobrać informacje
+     *
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
+     *
      */
     public function domainHostList(string $lastName = null)
     {
@@ -2435,6 +2896,10 @@ class HRDApi
      * @param string $authInfo - kod authInfo
      *
      * @return bool true jeżeli kod authinfo jest poprawny, false - w przypadku nieprawidłowej weryfikacji
+     *
+     * @throws HRDApiCommunicationException
+     * @throws HRDApiIncorrectDataException
+     * @throws HRDApiIncorrectDataReceivedException
      */
     public function domainValidateAuthInfo(string $domainName, string $authInfo)
     {
