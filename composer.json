@@ -5,7 +5,7 @@
     "description": "HRD Api",
     "require": {
         "php": "^7.0",
-        "ext-dom": "*"
+        "ext-dom": "*",
         "ext-intl": "*"
     },
     "autoload": {
