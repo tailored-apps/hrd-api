@@ -51,6 +51,14 @@ class HRDApi
     }
 
     /**
+     * Funkcja usuwa istniejące instancje
+     */
+    public static function clearInstance()
+    {
+        self::$instance = [];
+    }
+
+    /**
      * Funkcja do pobrania stanu konta partnera. Zwraca tablicę z saldem konta oraz z zablokowanym środkami na poczet trwających operacji.
      *
      * @return array Tablica zawierająca elementy balance oraz restricted_balance – stan konta oraz zablokowane środki
