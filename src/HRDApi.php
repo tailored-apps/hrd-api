@@ -1691,7 +1691,7 @@ class HRDApi
             $nsElem2 = $dom->createElement('ns');
             foreach ($ns as $item) {
                 $nsElem3 = $dom->createElement('ns');
-                $nsElem3->appendChild($dom->createElement('name', $item['name']));
+                $nsElem3->appendChild($dom->createElement('name', $this->idnToAscii($item['name'])));
                 if (isset($item['ipv4'])) {
                     foreach ($item['ipv4'] as $ipv4) {
                         $nsElem3->appendChild($dom->createElement('ipv4', $ipv4));
