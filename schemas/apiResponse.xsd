@@ -421,7 +421,7 @@
             <element name="contact" type="string" minOccurs="0"></element>
             <element name="ppDate" type="string" minOccurs="0"></element>
             <element name="privacy" type="boolean" minOccurs="0"></element>
-            <element name="dnssec" type="hrd:domainDnsSecInfoType" minOccurs="0"></element>
+            <element name="dnssec" type="hrd:domainDnsSecInfoType" minOccurs="0" maxOccurs="unbounded"></element>
             <element name="host" type="hrd:domainNameIPType" minOccurs="0" maxOccurs="unbounded"></element>
         </sequence>
     </complexType>
