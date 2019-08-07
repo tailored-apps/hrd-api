@@ -58,7 +58,7 @@
         <choice>
             <element name="info" type="hrd:userInfoType"></element>
             <element name="create" type="hrd:userCreateType"></element>
-            <element name="update" type="hrd:emptyTagType"></element>
+            <element name="update" type="hrd:actionIdOrEmptyType"></element>
             <element name="list" type="hrd:userListType"></element>
         </choice>
     </group>
@@ -120,7 +120,7 @@
             <element name="create" type="hrd:certCreateType"></element>
             <element name="info" type="hrd:certInfoType"></element>
             <element name="list" type="hrd:certListType"></element>
-            <element name="renew" type="hrd:certCreateType"></element>
+            <element name="renew" type="hrd:certRenewType"></element>
             <element name="get" type="hrd:certGetType"></element>
             <element name="contactInfo" type="hrd:certContactInfoType"></element>
             <element name="contactList" type="hrd:certContactListType"></element>
@@ -749,7 +749,12 @@
             <element name="certContactId" type="unsignedInt"></element>
         </all>
     </complexType>
-
+    <complexType name="certRenewType">
+        <all>
+            <element name="actionId" type="unsignedInt"></element>
+            <element name="certContactId" type="unsignedInt"></element>
+        </all>
+    </complexType>
     <complexType name="certListType">
         <sequence>
             <element name="id" type="unsignedInt" minOccurs="0"

@@ -17,6 +17,7 @@ class HRDApi
 
     const PERSON = 'person';
     const COMPANY = 'company';
+    const OWNER = 'owner';
 
     protected $debug = false;
     protected $verifyPeer = false;
@@ -49,7 +50,7 @@ class HRDApi
             }
         );
     }
-
+    
     /**
      * Funkcja usuwa istniejące instancje
      */
@@ -203,7 +204,7 @@ class HRDApi
     public function certRenew(
         string $id,
         int $period,
-        string $periodUnit,
+        string $periodUnit = 'y',
         string $approverEmail = null,
         string $csr = null
     ) {
@@ -226,7 +227,7 @@ class HRDApi
         }
 
 
-        return $this->sendIntResponse($dom, 'cert/create/actionId');
+        return $this->sendIntResponse($dom, 'cert/renew/actionId');
     }
 
     /**
@@ -494,7 +495,7 @@ class HRDApi
     {
         list($dom, $elem) = $this->getAPIDOMDocument('domain', 'transferRegistrantEmail');
         $elem->appendChild($dom->createElement('name', $this->idnToAscii($domain)));
-        $elem->appendChild($dom->createElement('pw', $pw));
+        $elem->appendChild($dom->createElement('pw', htmlspecialchars($pw)));
 
         return $this->sendStringResponse($dom, 'domain/transferRegistrantEmail/email');
     }
@@ -521,7 +522,10 @@ class HRDApi
             $elem->appendChild($dom->createElement('period', (string) $period));
         }
 
-        $elem->appendChild($dom->createElement('pw', htmlspecialchars($pw)));
+        $pwCdata = $dom->createCDATASection($pw);
+        $pwElement = $dom->createElement('pw');
+        $pwElement->appendChild($pwCdata);
+        $elem->appendChild($pwElement);
 
 
         return $this->sendIntResponse($dom, 'domain/transfer/actionId');
@@ -1365,6 +1369,10 @@ class HRDApi
                 $elem->appendChild($dom->createElement('companyType'));
                 $elem->appendChild($dom->createElement('representative', htmlspecialchars($representative)));
                 break;
+            case self::OWNER:
+                $elem->appendChild($dom->createElement('ownerType'));
+                $elem->appendChild($dom->createElement('representative', htmlspecialchars($representative)));
+                break;
             default:
                 throw new HRDApiIncorrectDataException('invalid type');
         }
@@ -1432,7 +1440,7 @@ class HRDApi
         $elem->appendChild($dom->createElement('city', htmlspecialchars($city)));
         $elem->appendChild($dom->createElement('country', $country));
 
-        return $this->sendVoidResponse($dom, 'user/update');
+        return $this->sendIntOrVoidResponse($dom, 'user/update','user/update/actionId');
     }
 
     /**
