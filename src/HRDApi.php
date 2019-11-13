@@ -2740,7 +2740,7 @@ class HRDApi
     public function domainDnsSecAdd($domain,$alg, $digestType, $digest, $key)
     {
         list($dom, $elem) = $this->getAPIDOMDocument('domain', 'dnssecAdd');
-        $elem->appendChild($dom->createElement('name', $domain));
+        $elem->appendChild($dom->createElement('name', $this->idnToAscii($domain)));
         $elem->appendChild($dom->createElement('alg', $alg));
         $elem->appendChild($dom->createElement('digestType', $digestType));
         $elem->appendChild($dom->createElement('digest', $digest));
@@ -2771,7 +2771,7 @@ class HRDApi
     public function domainDnsSecDelete($domain,$alg, $digestType, $digest, $key)
     {
         list($dom, $elem) = $this->getAPIDOMDocument('domain', 'dnssecDelete');
-        $elem->appendChild($dom->createElement('name', $domain));
+        $elem->appendChild($dom->createElement('name', $this->idnToAscii($domain)));
         $elem->appendChild($dom->createElement('alg', $alg));
         $elem->appendChild($dom->createElement('digestType', $digestType));
         $elem->appendChild($dom->createElement('digest', $digest));
