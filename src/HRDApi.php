@@ -389,27 +389,6 @@ class HRDApi
         return $this->sendIntResponse($dom, 'domain/create/actionId');
     }
 
-    /**
-     * utworzenie rezerwacji domeny .pl w systemie
-     * @param string $domain
-     * @param int    $csaId
-     * @return int
-     *
-     * @throws HRDApiCommunicationException
-     * @throws HRDApiIncorrectDataException
-     * @throws HRDApiIncorrectDataReceivedException
-     */
-    public function domainBook(string $domain, int $csaId)
-    {
-        /* @var \DOMDocument $dom */
-        /* @var \DOMElement $elem */
-        list($dom, $elem) = $this->getAPIDOMDocument('domain', 'book');
-        $elem->appendChild($dom->createElement('user', $csaId));
-        $elem->appendChild($dom->createElement('name', $this->idnToAscii($domain)));
-
-        return $this->sendIntResponse($dom, 'domain/book/actionId');
-    }
-
 
     /**
      * Anulowanie cesji/transferu wew. przez przejmującego domenę
