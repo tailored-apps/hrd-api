@@ -76,7 +76,6 @@
                 </unique>
             </element>
             <element name="info" type="hrd:domainNameType"></element>
-            <element name="book" type="hrd:domainBookType"></element>
             <element name="create" type="hrd:domainCreateType"></element>
             <element name="transfer" type="hrd:domainTransferType"></element>
             <element name="transferStatus" type="hrd:actionIdType"></element>
@@ -1473,12 +1472,6 @@
             <element name="name" type="hrd:domainNameSimpleType"></element>
             <element name="authInfo" type="string"></element>
         </sequence>
-    </complexType>
-    <complexType name="domainBookType">
-        <all>
-            <element name="user" type="unsignedInt"></element>
-            <element name="name" type="hrd:domainNameSimpleType"></element>
-        </all>
     </complexType>
     <simpleType name="String0_40Type">
         <restriction base="string">
