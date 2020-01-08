@@ -68,7 +68,6 @@
             <element name="authInfoCheck" type="hrd:domainAuthInfoCheckType"></element>
             <element name="check" type="hrd:domainCheckType"></element>
             <element name="info" type="hrd:domainInfoType"></element>
-            <element name="book" type="hrd:domainBookType"></element>
             <element name="create" type="hrd:domainCreateType"></element>
             <element name="renew" type="hrd:domainRenewType"></element>
             <element name="update" type="hrd:domainUpdateType"></element>
@@ -463,12 +462,6 @@
     </complexType>
 
     <complexType name="actionIdType">
-        <sequence>
-            <element name="actionId" type="unsignedInt"></element>
-        </sequence>
-    </complexType>
-
-    <complexType name="domainBookType">
         <sequence>
             <element name="actionId" type="unsignedInt"></element>
         </sequence>
