@@ -79,6 +79,7 @@
             <element name="create" type="hrd:domainCreateType"></element>
             <element name="transfer" type="hrd:domainTransferType"></element>
             <element name="transferStatus" type="hrd:actionIdType"></element>
+            <element name="transferCancel" type="hrd:domainTransferCancelType" />
             <element name="transferRegistrantEmail" type="hrd:transferRegistrantEmailType"></element>
             <element name="trade" type="hrd:domainTradeType"></element>
             <element name="tradeAssignorCancel" type="hrd:actionConfirmCancelType"></element>
@@ -1473,10 +1474,18 @@
             <element name="authInfo" type="string"></element>
         </sequence>
     </complexType>
+
     <simpleType name="String0_40Type">
         <restriction base="string">
             <minLength value="0"></minLength>
             <maxLength value="40"></maxLength>
         </restriction>
     </simpleType>
+
+    <complexType name="domainTransferCancelType">
+        <all>
+            <element name="name" type="hrd:domainNameSimpleType" />
+            <element name="user" type="unsignedInt" />
+        </all>
+    </complexType>
 </schema>

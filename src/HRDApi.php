@@ -530,6 +530,27 @@ class HRDApi
     }
 
     /**
+     * Cancel existing transfer
+     * @param string $name name of domain
+     * @param string $user CSA ID assigned to domain
+     *
+     * @return bool
+     * @throws \HRDBase\Api\Exceptions\HRDApiCommunicationException
+     * @throws \HRDBase\Api\Exceptions\HRDApiIncorrectDataException
+     * @throws \HRDBase\Api\Exceptions\HRDApiIncorrectDataReceivedException
+     */
+    public function domainTransferCancel($name, $user)
+    {
+        /* @var \DOMDocument $dom */
+        /* @var \DOMElement $elem */
+        list($dom, $elem) = $this->getAPIDOMDocument('domain', 'transferCancel');
+        $elem->appendChild($dom->createElement('name', $this->idnToAscii($name)));
+        $elem->appendChild($dom->createElement('user', (int) $user));
+
+        return $this->sendVoidResponse($dom, 'domain/transferCancel');
+    }
+
+    /**
      * Potwierdzenie płatności za cesje
      *
      * @param int $id

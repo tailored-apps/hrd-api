@@ -96,6 +96,7 @@
             <element name="tradePayerConfirm" type="hrd:emptyTagType"></element>
             <element name="transfer" type="hrd:actionIdType"></element>
             <element name="transferStatus" type="hrd:domainTransferStatusType"></element>
+            <element name="transferCancel" type="hrd:emptyTagType" />
             <element name="transferRegistrantEmail" type="hrd:domainTransferRegistrantEmailType"></element>
             <element name="futureCheck" type="hrd:domainFutureCheckType"></element>
             <element name="futureCreate" type="hrd:actionIdType"></element>
