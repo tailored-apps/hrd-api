@@ -17,6 +17,7 @@ class HRDApi
 
     const PERSON = 'person';
     const COMPANY = 'company';
+    const OWNER = 'owner';
 
     protected $debug = false;
     protected $verifyPeer = false;
@@ -48,6 +49,14 @@ class HRDApi
                 return $config['apiPass'];
             }
         );
+    }
+    
+    /**
+     * Funkcja usuwa istniejące instancje
+     */
+    public static function clearInstance()
+    {
+        self::$instance = [];
     }
 
     /**
@@ -195,7 +204,7 @@ class HRDApi
     public function certRenew(
         string $id,
         int $period,
-        string $periodUnit,
+        string $periodUnit = 'y',
         string $approverEmail = null,
         string $csr = null
     ) {
@@ -218,7 +227,7 @@ class HRDApi
         }
 
 
-        return $this->sendIntResponse($dom, 'cert/create/actionId');
+        return $this->sendIntResponse($dom, 'cert/renew/actionId');
     }
 
     /**
@@ -465,7 +474,7 @@ class HRDApi
     {
         list($dom, $elem) = $this->getAPIDOMDocument('domain', 'transferRegistrantEmail');
         $elem->appendChild($dom->createElement('name', $this->idnToAscii($domain)));
-        $elem->appendChild($dom->createElement('pw', $pw));
+        $elem->appendChild($dom->createElement('pw', htmlspecialchars($pw)));
 
         return $this->sendStringResponse($dom, 'domain/transferRegistrantEmail/email');
     }
@@ -492,7 +501,10 @@ class HRDApi
             $elem->appendChild($dom->createElement('period', (string) $period));
         }
 
-        $elem->appendChild($dom->createElement('pw', htmlspecialchars($pw)));
+        $pwCdata = $dom->createCDATASection($pw);
+        $pwElement = $dom->createElement('pw');
+        $pwElement->appendChild($pwCdata);
+        $elem->appendChild($pwElement);
 
 
         return $this->sendIntResponse($dom, 'domain/transfer/actionId');
@@ -515,6 +527,27 @@ class HRDApi
         $elem->appendChild($dom->createElement('id', (string) $id));
 
         return $this->sendArrayResponse($dom, 'domain/transferStatus/*', ['assignorId']);
+    }
+
+    /**
+     * Cancel existing transfer
+     * @param string $name name of domain
+     * @param string $user CSA ID assigned to domain
+     *
+     * @return bool
+     * @throws \HRDBase\Api\Exceptions\HRDApiCommunicationException
+     * @throws \HRDBase\Api\Exceptions\HRDApiIncorrectDataException
+     * @throws \HRDBase\Api\Exceptions\HRDApiIncorrectDataReceivedException
+     */
+    public function domainTransferCancel($name, $user)
+    {
+        /* @var \DOMDocument $dom */
+        /* @var \DOMElement $elem */
+        list($dom, $elem) = $this->getAPIDOMDocument('domain', 'transferCancel');
+        $elem->appendChild($dom->createElement('name', $this->idnToAscii($name)));
+        $elem->appendChild($dom->createElement('user', (int) $user));
+
+        return $this->sendVoidResponse($dom, 'domain/transferCancel');
     }
 
     /**
@@ -1336,6 +1369,10 @@ class HRDApi
                 $elem->appendChild($dom->createElement('companyType'));
                 $elem->appendChild($dom->createElement('representative', htmlspecialchars($representative)));
                 break;
+            case self::OWNER:
+                $elem->appendChild($dom->createElement('ownerType'));
+                $elem->appendChild($dom->createElement('representative', htmlspecialchars($representative)));
+                break;
             default:
                 throw new HRDApiIncorrectDataException('invalid type');
         }
@@ -1403,7 +1440,7 @@ class HRDApi
         $elem->appendChild($dom->createElement('city', htmlspecialchars($city)));
         $elem->appendChild($dom->createElement('country', $country));
 
-        return $this->sendVoidResponse($dom, 'user/update');
+        return $this->sendIntOrVoidResponse($dom, 'user/update','user/update/actionId');
     }
 
     /**
@@ -1662,7 +1699,7 @@ class HRDApi
             $nsElem2 = $dom->createElement('ns');
             foreach ($ns as $item) {
                 $nsElem3 = $dom->createElement('ns');
-                $nsElem3->appendChild($dom->createElement('name', $item['name']));
+                $nsElem3->appendChild($dom->createElement('name', $this->idnToAscii($item['name'])));
                 if (isset($item['ipv4'])) {
                     foreach ($item['ipv4'] as $ipv4) {
                         $nsElem3->appendChild($dom->createElement('ipv4', $ipv4));
@@ -2703,7 +2740,7 @@ class HRDApi
     public function domainDnsSecAdd($domain,$alg, $digestType, $digest, $key)
     {
         list($dom, $elem) = $this->getAPIDOMDocument('domain', 'dnssecAdd');
-        $elem->appendChild($dom->createElement('name', $domain));
+        $elem->appendChild($dom->createElement('name', $this->idnToAscii($domain)));
         $elem->appendChild($dom->createElement('alg', $alg));
         $elem->appendChild($dom->createElement('digestType', $digestType));
         $elem->appendChild($dom->createElement('digest', $digest));
@@ -2734,7 +2771,7 @@ class HRDApi
     public function domainDnsSecDelete($domain,$alg, $digestType, $digest, $key)
     {
         list($dom, $elem) = $this->getAPIDOMDocument('domain', 'dnssecDelete');
-        $elem->appendChild($dom->createElement('name', $domain));
+        $elem->appendChild($dom->createElement('name', $this->idnToAscii($domain)));
         $elem->appendChild($dom->createElement('alg', $alg));
         $elem->appendChild($dom->createElement('digestType', $digestType));
         $elem->appendChild($dom->createElement('digest', $digest));

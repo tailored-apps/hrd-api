@@ -76,10 +76,10 @@
                 </unique>
             </element>
             <element name="info" type="hrd:domainNameType"></element>
-            <element name="book" type="hrd:domainBookType"></element>
             <element name="create" type="hrd:domainCreateType"></element>
             <element name="transfer" type="hrd:domainTransferType"></element>
             <element name="transferStatus" type="hrd:actionIdType"></element>
+            <element name="transferCancel" type="hrd:domainTransferCancelType" />
             <element name="transferRegistrantEmail" type="hrd:transferRegistrantEmailType"></element>
             <element name="trade" type="hrd:domainTradeType"></element>
             <element name="tradeAssignorCancel" type="hrd:actionConfirmCancelType"></element>
@@ -790,7 +790,7 @@
             <element name="org" type="hrd:String1_255Type" minOccurs="0"></element>
             <element name="name" type="hrd:String1_255Type"></element>
             <element name="voice" type="hrd:landlineOrMobilePhoneType"></element>
-            <element name="fax" type="hrd:landlinePhoneType" minOccurs="0"></element>
+            <element name="fax" type="hrd:String0_40Type" minOccurs="0"></element>
             <element name="street" type="hrd:String1_255Type"></element>
             <element name="postcode" type="hrd:String3_16Type"></element>
             <element name="city" type="hrd:String1_128Type"></element>
@@ -821,7 +821,7 @@
             <element name="org" type="hrd:String1_255Type" minOccurs="0"></element>
             <element name="name" type="hrd:String1_255Type"></element>
             <element name="voice" type="hrd:landlineOrMobilePhoneType"></element>
-            <element name="fax" type="hrd:landlinePhoneType" minOccurs="0"></element>
+            <element name="fax" type="hrd:String0_40Type" minOccurs="0"></element>
             <element name="street" type="hrd:String1_255Type"></element>
             <element name="postcode" type="hrd:String3_16Type"></element>
             <element name="city" type="hrd:String1_128Type"></element>
@@ -886,6 +886,11 @@
                     </element>
                     <element name="representative" type="hrd:String3_255Type"></element>
                 </sequence>
+                <sequence>
+                    <element name="ownerType" type="hrd:emptyTagType">
+                    </element>
+                    <element name="representative" type="hrd:String3_255Type"></element>
+                </sequence>
             </choice>
             <element name="idNumber" type="hrd:String1_255Type"></element>
             <element name="email" type="hrd:emailType"></element>
@@ -893,7 +898,7 @@
                      minOccurs="0">
             </element>
             <element name="landlinePhone" type="hrd:landlineOrMobilePhoneType"></element>
-            <element name="fax" type="hrd:landlinePhoneType" minOccurs="0"></element>
+            <element name="fax" type="hrd:String0_40Type" minOccurs="0"></element>
             <element name="name" type="hrd:String3_255Type"></element>
             <element name="street" type="hrd:String3_255Type"></element>
             <element name="postcode" type="hrd:String3_16Type"></element>
@@ -911,7 +916,7 @@
             <element name="landlinePhone" type="hrd:landlineOrMobilePhoneType"
                      minOccurs="0">
             </element>
-            <element name="fax" type="hrd:landlinePhoneType" minOccurs="0"></element>
+            <element name="fax" type="hrd:String0_40Type" minOccurs="0"></element>
             <element name="street" type="hrd:String3_255Type"></element>
             <element name="postcode" type="hrd:String3_16Type"></element>
             <element name="city" type="hrd:String1_255Type"></element>
@@ -985,12 +990,8 @@
                         <enumeration value="Instant SSL"></enumeration>
                         <enumeration value="Positive SSL"></enumeration>
                         <enumeration value="Positive SSL + Wildcard"></enumeration>
-                        <enumeration value="QuickSSL Basic"></enumeration>
-                        <enumeration value="QuickSSL Premium"></enumeration>
-                        <enumeration value="QuickSSL Premium Free Trial"></enumeration>
-                        <enumeration value="True BusinessID"></enumeration>
-                        <enumeration value="True BusinessID Wildcard"></enumeration>
-                        <enumeration value="True BusinessID + EV"></enumeration>
+                        <enumeration value="Trustico Single Site"></enumeration>
+                        <enumeration value="Trustico Wildcard"></enumeration>
                     </restriction>
                 </simpleType>
             </element>
@@ -1099,13 +1100,7 @@
             </element>
             <element name="city" type="hrd:certString40Type"></element>
             <element name="state" type="hrd:certString40Type"></element>
-            <element name="postCode">
-                <simpleType>
-                    <restriction base="string">
-                        <pattern value="[a-zA-Z0-9\-_]{1,15}"></pattern>
-                    </restriction>
-                </simpleType>
-            </element>
+            <element name="postCode" type="hrd:String3_16Type"></element>
             <element name="country" type="hrd:countryType"></element>
         </all>
     </complexType>
@@ -1441,6 +1436,7 @@
             <enumeration value="UA"></enumeration>
             <enumeration value="AE"></enumeration>
             <enumeration value="GB"></enumeration>
+            <enumeration value="UK"></enumeration>
             <enumeration value="US"></enumeration>
             <enumeration value="UM"></enumeration>
             <enumeration value="UY"></enumeration>
@@ -1478,10 +1474,18 @@
             <element name="authInfo" type="string"></element>
         </sequence>
     </complexType>
-    <complexType name="domainBookType">
+
+    <simpleType name="String0_40Type">
+        <restriction base="string">
+            <minLength value="0"></minLength>
+            <maxLength value="40"></maxLength>
+        </restriction>
+    </simpleType>
+
+    <complexType name="domainTransferCancelType">
         <all>
-            <element name="user" type="unsignedInt"></element>
-            <element name="name" type="hrd:domainNameSimpleType"></element>
+            <element name="name" type="hrd:domainNameSimpleType" />
+            <element name="user" type="unsignedInt" />
         </all>
     </complexType>
 </schema>
