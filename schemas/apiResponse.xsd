@@ -39,11 +39,6 @@
             <element name="resendTradeMail" type="hrd:emptyTagType"></element>
             <element name="getKeys" type="hrd:partnerGetKeysType"></element>
             <element name="setKey" type="hrd:emptyTagType"></element>
-            <element name="contactCreate" type="hrd:contactIdType"></element>
-            <element name="contactUpdate" type="hrd:actionIdOrEmptyType"></element>
-            <element name="contactDelete" type="hrd:actionIdOrEmptyType"></element>
-            <element name="contactInfo" type="hrd:contactInfoType"></element>
-            <element name="contactList" type="hrd:contactListType"></element>
         </choice>
     </group>
 
@@ -84,8 +79,6 @@
             <element name="nsGroupDelete" type="hrd:emptyTagType"></element>
             <element name="nsGroupList" type="hrd:domainNsGroupListType"></element>
             <element name="whois" type="hrd:domainWhoisType"></element>
-            <element name="contactList" type="hrd:domainContactListType"></element>
-            <element name="contactSet" type="hrd:contactSetType"></element>
             <element name="tradeGetPw" type="hrd:domainGetPwType"></element>
             <element name="tradeInnerGetPw" type="hrd:domainGetPwType"></element>
             <element name="trade" type="hrd:actionIdType"></element>
@@ -456,12 +449,6 @@
         </restriction>
     </simpleType>
 
-    <complexType name="contactSetType">
-        <sequence>
-            <element name="actionId" type="unsignedInt" minOccurs="0" maxOccurs="1"></element>
-        </sequence>
-    </complexType>
-
     <complexType name="actionIdType">
         <sequence>
             <element name="actionId" type="unsignedInt"></element>
@@ -524,13 +511,6 @@
     <complexType name="domainWhoisType">
         <sequence>
             <element name="textResponse" type="string"></element>
-        </sequence>
-    </complexType>
-
-    <complexType name="domainContactListType">
-        <sequence>
-            <element name="registrant" type="unsignedInt" minOccurs="0"></element>
-            <element name="tech" type="unsignedInt" minOccurs="0"></element>
         </sequence>
     </complexType>
 
@@ -613,44 +593,9 @@
         </sequence>
     </complexType>
 
-    <complexType name="contactIdType">
-        <sequence>
-            <element name="contactId" type="unsignedInt"></element>
-        </sequence>
-    </complexType>
-
     <complexType name="actionIdOrEmptyType">
         <sequence>
             <element name="actionId" type="unsignedInt" minOccurs="0"></element>
-        </sequence>
-    </complexType>
-
-    <complexType name="contactInfoType">
-        <sequence>
-            <choice>
-                <element name="personType" type="hrd:emptyTagType"></element>
-                <element name="companyType" type="hrd:emptyTagType"></element>
-            </choice>
-            <element name="org" type="string" minOccurs="0"></element>
-            <element name="userId" type="string" minOccurs="0"></element>
-            <element name="name" type="string"></element>
-            <element name="voice" type="string" minOccurs="0"></element>
-            <element name="fax" type="string" minOccurs="0"></element>
-            <element name="street" type="string"></element>
-            <element name="postcode" type="string"></element>
-            <element name="city" type="string"></element>
-            <element name="sp" type="string"></element>
-            <element name="country" type="string"></element>
-            <element name="email" type="string"></element>
-            <element name="type" type="string"></element>
-        </sequence>
-    </complexType>
-
-    <complexType name="contactListType">
-        <sequence>
-            <element name="id" type="unsignedInt" minOccurs="0"
-                     maxOccurs="unbounded">
-            </element>
         </sequence>
     </complexType>
 
