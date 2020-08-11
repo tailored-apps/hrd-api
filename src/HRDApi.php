@@ -942,53 +942,6 @@ class HRDApi
     }
 
     /**
-     * Funkcja służy do pobrania kontaktów domeny
-     *
-     * @param string $name nazwa domeny
-     *
-     * @return array|bool
-     * @throws HRDApiCommunicationException
-     * @throws HRDApiIncorrectDataException
-     * @throws HRDApiIncorrectDataReceivedException
-     *
-     */
-    public function domainContactList(string $name)
-    {
-        /* @var \DOMDocument $dom */
-        /* @var \DOMElement $elem */
-        list($dom, $elem) = $this->getAPIDOMDocument('domain', 'contactList');
-        $elem->appendChild($dom->createElement('name', $this->idnToAscii($name)));
-
-        return $this->sendArrayResponse($dom, 'domain/contactList/*', ['registrant', 'tech']);
-    }
-
-    /**
-     * Funkcja służy do ustawienia kontaktu technicznego domeny
-     *
-     * @param string   $name
-     * @param int|null $techId
-     *
-     * @return int|null
-     * @throws HRDApiCommunicationException
-     * @throws HRDApiIncorrectDataException
-     * @throws HRDApiIncorrectDataReceivedException
-     */
-    public function domainContactSet(string $name, int $techId = null)
-    {
-        /* @var \DOMDocument $dom */
-        /* @var \DOMElement $elem */
-        list($dom, $elem) = $this->getAPIDOMDocument('domain', 'contactSet');
-        $elem->appendChild($dom->createElement('name', $this->idnToAscii($name)));
-        $techElem = $dom->createElement('tech');
-        if ($techId) {
-            $techElem->appendChild($dom->createElement('contactId', $techId));
-        }
-        $elem->appendChild($techElem);
-
-        return $this->sendIntOrVoidResponse($dom, 'domain/contactSet', 'domain/contactSet/actionId');
-    }
-
-    /**
      * Pobieranie kodu transferu wewnętrznego
      * @param string $name Nazwa domeny
      * @return string Kod cesji
@@ -2753,4 +2706,3 @@ class HRDApi
         return idn_to_utf8($name, IDNA_NONTRANSITIONAL_TO_ASCII, INTL_IDNA_VARIANT_UTS46);
     }
 }
-
