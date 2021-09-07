@@ -2690,7 +2690,11 @@ class HRDApi
     {
         list($dom, $elem) = $this->getAPIDOMDocument('domain', 'authInfoCheck');
         $elem->appendChild($dom->createElement('name', $this->idnToAscii($domainName)));
-        $elem->appendChild($dom->createElement('authInfo', (string)$authInfo));
+        
+        $pwCdata = $dom->createCDATASection((string)$authInfo);
+        $pwElement = $dom->createElement('authInfo');
+        $pwElement->appendChild($pwCdata);
+        $elem->appendChild($pwElement);
 
         $response = $this->sendStringResponse($dom, 'domain/authInfoCheck/valid');
         return filter_var($response,FILTER_VALIDATE_BOOLEAN,FILTER_NULL_ON_FAILURE);
