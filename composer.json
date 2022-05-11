@@ -4,7 +4,7 @@
     "type": "library",
     "description": "HRD Api",
     "require": {
-        "php": "^7.0",
+        "php": "^7.0 || ^8.0",
         "ext-dom": "*",
         "ext-intl": "*"
     },
