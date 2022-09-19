@@ -351,7 +351,12 @@ class HRDApi
         list($dom, $elem) = $this->getAPIDOMDocument('domain', 'info');
         $elem->appendChild($dom->createElement('name', $this->idnToAscii($name)));
 
-        return $this->sendArrayResponse($dom, 'domain/info/*', [], 'domain/info/ns/', null, null, true);
+        $output = $this->sendArrayResponse($dom, 'domain/info/*', [], 'domain/info/ns/', null, null, true);
+        if(isset($output['name']))
+        {
+            $output['product'] = $this->getProductFromDomainName($output['name']);
+        }
+        return $output;
     }
 
     /**
@@ -2708,5 +2713,26 @@ class HRDApi
     protected function idnToUtf8($name)
     {
         return idn_to_utf8($name, IDNA_NONTRANSITIONAL_TO_ASCII, INTL_IDNA_VARIANT_UTS46);
+    }
+
+    public function getProductFromDomainName($fqdn): string
+    {
+        try {
+            $tld = '';
+            $firstDotPosition = mb_strpos($fqdn, '.');
+            if ($firstDotPosition !== false) {
+                $tld = mb_substr($fqdn, $firstDotPosition + 1);
+            }
+
+            $systemName = 'd_';
+            if ($this->idnToUtf8($fqdn) != $this->idnToAscii($fqdn)) {
+                $systemName = 'idn_d_';
+            }
+
+            return $systemName . $tld;
+
+        } catch (\Exception $e) {
+            return '';
+        }
     }
 }
