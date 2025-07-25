@@ -1,0 +1,3 @@
+# Ignore build outputs
+HrdApiNet/bin/
+HrdApiNet/obj/
