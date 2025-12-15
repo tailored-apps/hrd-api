@@ -1,0 +1,48 @@
+@page "/users/info/{UserId:int}"
+@inject HRD.Api.HRDApi HrdApi
+@using HRD.Api
+
+<h3>User Info: @UserId</h3>
+
+@if (info == null && error == null)
+{
+    <p>Loading...</p>
+}
+else if (error != null)
+{
+    <div class="alert alert-danger">@error</div>
+}
+else
+{
+    <table class="table table-bordered">
+        <tbody>
+            @foreach (var kvp in info)
+            {
+                <tr>
+                    <th>@kvp.Key</th>
+                    <td>@kvp.Value</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    [Parameter]
+    public int UserId { get; set; }
+
+    private Dictionary<string, string>? info;
+    private string? error;
+
+    protected override void OnInitialized()
+    {
+        try
+        {
+            info = HrdApi.UserInfo(UserId);
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+    }
+}

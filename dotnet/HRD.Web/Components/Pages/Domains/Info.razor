@@ -1,0 +1,48 @@
+@page "/domains/info/{DomainName}"
+@inject HRD.Api.HRDApi HrdApi
+@using HRD.Api
+
+<h3>Domain Info: @DomainName</h3>
+
+@if (info == null && error == null)
+{
+    <p>Loading...</p>
+}
+else if (error != null)
+{
+    <div class="alert alert-danger">@error</div>
+}
+else
+{
+    <table class="table table-bordered">
+        <tbody>
+            @foreach (var kvp in info)
+            {
+                <tr>
+                    <th>@kvp.Key</th>
+                    <td>@kvp.Value</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    [Parameter]
+    public string DomainName { get; set; } = "";
+
+    private Dictionary<string, object>? info;
+    private string? error;
+
+    protected override void OnInitialized()
+    {
+        try
+        {
+            info = HrdApi.DomainInfo(DomainName);
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+    }
+}

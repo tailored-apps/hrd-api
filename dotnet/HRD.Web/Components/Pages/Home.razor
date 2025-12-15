@@ -1,0 +1,51 @@
+﻿@page "/"
+@inject HRD.Api.HRDApi HrdApi
+@using HRD.Api
+
+<PageTitle>HRD Dashboard</PageTitle>
+
+<h1>Dashboard</h1>
+
+<div class="card mt-4">
+    <div class="card-header">
+        Partner Status
+    </div>
+    <div class="card-body">
+        @if (error != null)
+        {
+            <div class="alert alert-danger">
+                @error
+            </div>
+        }
+        else if (balance == null)
+        {
+            <p>Loading...</p>
+        }
+        else
+        {
+            <h5 class="card-title">Balance: @balance?.ToString("C")</h5>
+            <p class="card-text">Restricted Balance: @restricted?.ToString("C")</p>
+            <p class="text-success">Connected to HRD API</p>
+        }
+    </div>
+</div>
+
+@code {
+    private decimal? balance;
+    private decimal? restricted;
+    private string? error;
+
+    protected override void OnInitialized()
+    {
+        try
+        {
+            var result = HrdApi.PartnerGetBalance();
+            balance = result.balance;
+            restricted = result.restrictedBalance;
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+    }
+}

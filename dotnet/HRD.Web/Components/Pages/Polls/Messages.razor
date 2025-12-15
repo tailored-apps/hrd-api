@@ -1,0 +1,81 @@
+@page "/polls"
+@inject HRD.Api.HRDApi HrdApi
+@using HRD.Api
+@rendermode InteractiveServer
+
+<h3>Poll Messages</h3>
+
+<p>Check for new messages in the queue.</p>
+
+<button class="btn btn-primary" @onclick="CheckMessage">Check Next Message</button>
+
+@if (currentMessage != null)
+{
+    <div class="card mt-3">
+        <div class="card-header">
+            New Message
+        </div>
+        <div class="card-body">
+            <ul>
+            @foreach (var kvp in currentMessage)
+            {
+                <li><strong>@kvp.Key</strong>: @kvp.Value</li>
+            }
+            </ul>
+        </div>
+        <div class="card-footer">
+            <button class="btn btn-success" @onclick="AckMessage">Acknowledge (Mark Read)</button>
+        </div>
+    </div>
+}
+else if (messageChecked)
+{
+    <p class="mt-3">No new messages.</p>
+}
+
+@if (error != null)
+{
+    <div class="alert alert-danger mt-3">@error</div>
+}
+
+@code {
+    private Dictionary<string, string>? currentMessage;
+    private string? error;
+    private bool messageChecked = false;
+
+    private void CheckMessage()
+    {
+        error = null;
+        messageChecked = true;
+        try
+        {
+            currentMessage = HrdApi.PollGetMessage();
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+            currentMessage = null;
+        }
+    }
+
+    private void AckMessage()
+    {
+        if (currentMessage == null || !currentMessage.ContainsKey("id")) return;
+        
+        try
+        {
+            if (int.TryParse(currentMessage["id"], out int id))
+            {
+                HrdApi.PollAck(id);
+                // Clear and check next
+                currentMessage = null;
+                messageChecked = false;
+                CheckMessage();
+            }
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+    }
+}

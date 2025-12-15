@@ -1,0 +1,53 @@
+@page "/users"
+@inject HRD.Api.HRDApi HrdApi
+@using HRD.Api
+
+<h3>Users</h3>
+
+@if (users == null)
+{
+    <p>Loading...</p>
+}
+else if (!users.Any())
+{
+    <p>No users found.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>User ID</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var id in users)
+            {
+                <tr>
+                    <td>@id</td>
+                    <td>
+                        <a href="/users/info/@id" class="btn btn-sm btn-info">Info</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<int>? users;
+
+    protected override void OnInitialized()
+    {
+        try
+        {
+            users = HrdApi.UserList().ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            users = new List<int>();
+        }
+    }
+}

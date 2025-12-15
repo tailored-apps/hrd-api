@@ -19,7 +19,7 @@ class HRDApi
     const COMPANY = 'company';
     const OWNER = 'owner';
 
-    protected $debug = false;
+    protected $debug = true;
     protected $verifyPeer = false;
     protected $responseSchemaValidate = true;
     protected $schemaValidate = true;
@@ -50,7 +50,7 @@ class HRDApi
             }
         );
     }
-    
+
     /**
      * Funkcja usuwa istniejące instancje
      */
@@ -352,8 +352,7 @@ class HRDApi
         $elem->appendChild($dom->createElement('name', $this->idnToAscii($name)));
 
         $output = $this->sendArrayResponse($dom, 'domain/info/*', [], 'domain/info/ns/', null, null, true);
-        if(isset($output['name']))
-        {
+        if (isset($output['name'])) {
             $output['product'] = $this->getProductFromDomainName($output['name']);
         }
         return $output;
@@ -607,7 +606,7 @@ class HRDApi
     public function domainTradeStatus(int $id)
     {
         list($dom, $elem) = $this->getAPIDOMDocument('domain', 'tradeStatus');
-        $elem->appendChild($dom->createElement('id', (string)$id));
+        $elem->appendChild($dom->createElement('id', (string) $id));
 
         return $this->sendArrayResponse($dom, 'domain/tradeStatus/*', ['assigneeId', 'assignorId']);
     }
@@ -1069,10 +1068,10 @@ class HRDApi
                 'ttl' => 3600,
                 'changetype' => 'REPLACE',
                 'records' => [
-                    [
-                        'content' => '10 ' . $address,
-                    ]
-                ],
+                        [
+                            'content' => '10 ' . $address,
+                        ]
+                    ],
             ]
         ]);
     }
@@ -1102,10 +1101,10 @@ class HRDApi
                 'ttl' => 3600,
                 'changetype' => 'REPLACE',
                 'records' => [
-                    [
-                        'content' => $ip,
-                    ]
-                ],
+                        [
+                            'content' => $ip,
+                        ]
+                    ],
             ]
         ]);
     }
@@ -1135,10 +1134,10 @@ class HRDApi
                 'ttl' => 3600,
                 'changetype' => 'REPLACE',
                 'records' => [
-                    [
-                        'content' => $alias,
-                    ]
-                ],
+                        [
+                            'content' => $alias,
+                        ]
+                    ],
             ]
         ]);
     }
@@ -1160,21 +1159,21 @@ class HRDApi
             $name,
             [
                 [
-                    'name'       => $name.'.',
-                    'type'       => 'A',
+                    'name' => $name . '.',
+                    'type' => 'A',
                     'changetype' => 'DELETE'
                 ],
                 [
-                    'name'       => $name.'.',
-                    'type'       => 'CNAME',
-                    'ttl'        => 3600,
+                    'name' => $name . '.',
+                    'type' => 'CNAME',
+                    'ttl' => 3600,
                     'changetype' => 'REPLACE',
-                    'records'    => [
-                        [
-                            'content' => 'dns.test.hrd.pl',
-                        ]
-                    ],
-                    'comments'   => [
+                    'records' => [
+                            [
+                                'content' => 'dns.test.hrd.pl',
+                            ]
+                        ],
+                    'comments' => [
                         [
                             'account' => 'redirect',
                             'content' => $url,
@@ -1398,7 +1397,7 @@ class HRDApi
         $elem->appendChild($dom->createElement('city', htmlspecialchars($city)));
         $elem->appendChild($dom->createElement('country', $country));
 
-        return $this->sendIntOrVoidResponse($dom, 'user/update','user/update/actionId');
+        return $this->sendIntOrVoidResponse($dom, 'user/update', 'user/update/actionId');
     }
 
     /**
@@ -1459,7 +1458,7 @@ class HRDApi
         /* @var \DOMDocument $dom */
         /* @var \DOMElement $elem */
         list($dom, $elem) = $this->getAPIDOMDocument('user', 'contactInfo');
-        $elem->appendChild($dom->createElement('id', (string)$id));
+        $elem->appendChild($dom->createElement('id', (string) $id));
 
         return $this->sendArrayResponse($dom, 'user/contactInfo/*');
     }
@@ -1479,7 +1478,7 @@ class HRDApi
         /* @var \DOMDocument $dom */
         /* @var \DOMElement $elem */
         list($dom, $elem) = $this->getAPIDOMDocument('action', 'info');
-        $elem->appendChild($dom->createElement('id', (string)$id));
+        $elem->appendChild($dom->createElement('id', (string) $id));
 
         return $this->sendArrayResponse($dom, 'action/info/*', ['id'], null, null, null, true);
     }
@@ -2100,7 +2099,7 @@ class HRDApi
                 } elseif ($item->nodeName === 'dnssec') {
                     $this->parseDnsSec($toReturn, $item);
                 } else {
-                    $toReturn[$item->nodeName] = (in_array($item->nodeName, $castToIntKeys, true) ? (int)$item->textContent : $item->textContent);
+                    $toReturn[$item->nodeName] = (in_array($item->nodeName, $castToIntKeys, true) ? (int) $item->textContent : $item->textContent);
                 }
             }
 
@@ -2399,7 +2398,7 @@ class HRDApi
     public function partnerPricingServiceInfo(string $name)
     {
         list($dom, $elem) = $this->getAPIDOMDocument('partner', 'getPricingInfo');
-        $elem->appendChild($dom->createElement('name', (string)$name));
+        $elem->appendChild($dom->createElement('name', (string) $name));
 
         return $this->sendArrayResponse($dom, 'partner/pricing', [], 'partner/pricing');
     }
@@ -2418,12 +2417,12 @@ class HRDApi
     public function partnerResendTradeMail(int $id, $assigneeId = null, $assignorId = null)
     {
         list($dom, $elem) = $this->getAPIDOMDocument('partner', 'resendTradeMail');
-        $elem->appendChild($dom->createElement('id', (string)$id));
+        $elem->appendChild($dom->createElement('id', (string) $id));
         if (!empty($assignorId)) {
-            $elem->appendChild($dom->createElement('assignor', (string)$assignorId));
+            $elem->appendChild($dom->createElement('assignor', (string) $assignorId));
         }
         if (!empty($assigneeId)) {
-            $elem->appendChild($dom->createElement('assignee', (string)$assigneeId));
+            $elem->appendChild($dom->createElement('assignee', (string) $assigneeId));
         }
 
         return $this->sendVoidResponse($dom, 'partner/resendTradeMail');
@@ -2511,7 +2510,7 @@ class HRDApi
      * @throws HRDApiIncorrectDataException
      * @throws HRDApiIncorrectDataReceivedException
      */
-    public function domainDnsSecAdd($domain,$alg, $digestType, $digest, $key)
+    public function domainDnsSecAdd($domain, $alg, $digestType, $digest, $key)
     {
         list($dom, $elem) = $this->getAPIDOMDocument('domain', 'dnssecAdd');
         $elem->appendChild($dom->createElement('name', $this->idnToAscii($domain)));
@@ -2520,8 +2519,7 @@ class HRDApi
         $elem->appendChild($dom->createElement('digest', $digest));
         if (in_array($key, ['zsk', 'ksk'])) {
             $elem->appendChild($dom->createElement('keyType', $key));
-        } else
-        {
+        } else {
             $elem->appendChild($dom->createElement('keyTag', $key));
         }
 
@@ -2542,7 +2540,7 @@ class HRDApi
      * @throws HRDApiIncorrectDataException
      * @throws HRDApiIncorrectDataReceivedException
      */
-    public function domainDnsSecDelete($domain,$alg, $digestType, $digest, $key)
+    public function domainDnsSecDelete($domain, $alg, $digestType, $digest, $key)
     {
         list($dom, $elem) = $this->getAPIDOMDocument('domain', 'dnssecDelete');
         $elem->appendChild($dom->createElement('name', $this->idnToAscii($domain)));
@@ -2551,14 +2549,13 @@ class HRDApi
         $elem->appendChild($dom->createElement('digest', $digest));
         if (in_array($key, ['zsk', 'ksk'])) {
             $elem->appendChild($dom->createElement('keyType', $key));
-        } else
-        {
+        } else {
             $elem->appendChild($dom->createElement('keyTag', $key));
         }
 
         return $this->sendIntResponse($dom, 'domain/dnssecDelete/actionId');
     }
-    
+
     /**
      * Tworzenie hosta
      *
@@ -2695,14 +2692,14 @@ class HRDApi
     {
         list($dom, $elem) = $this->getAPIDOMDocument('domain', 'authInfoCheck');
         $elem->appendChild($dom->createElement('name', $this->idnToAscii($domainName)));
-        
-        $pwCdata = $dom->createCDATASection((string)$authInfo);
+
+        $pwCdata = $dom->createCDATASection((string) $authInfo);
         $pwElement = $dom->createElement('authInfo');
         $pwElement->appendChild($pwCdata);
         $elem->appendChild($pwElement);
 
         $response = $this->sendStringResponse($dom, 'domain/authInfoCheck/valid');
-        return filter_var($response,FILTER_VALIDATE_BOOLEAN,FILTER_NULL_ON_FAILURE);
+        return filter_var($response, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
     }
 
     protected function idnToAscii($name)

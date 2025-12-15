@@ -1,0 +1,62 @@
+@page "/domains"
+@inject HRD.Api.HRDApi HrdApi
+@using HRD.Api
+
+<PageTitle>Domains</PageTitle>
+
+<h3>Domains</h3>
+
+<div class="mb-3">
+    <a href="/domains/check" class="btn btn-primary">Check Domain</a>
+</div>
+
+@if (domains == null)
+{
+    <p>Loading...</p>
+}
+else if (!domains.Any())
+{
+    <p>No domains found.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Domain Name</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var domain in domains)
+            {
+                <tr>
+                    <td>@domain</td>
+                    <td>
+                        <a href="/domains/info/@domain" class="btn btn-sm btn-info">Info</a>
+                        <a href="/domains/whois/@domain" class="btn btn-sm btn-secondary">Whois</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<string>? domains;
+
+    protected override void OnInitialized()
+    {
+        try
+        {
+            // Paginated usually, getting first page/all
+            domains = HrdApi.DomainList().ToList();
+        }
+        catch (Exception ex)
+        {
+            // Handle error (maybe show message)
+            domains = new List<string>(); // Empty list on error for now
+            Console.WriteLine(ex.Message);
+        }
+    }
+}

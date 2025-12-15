@@ -1,0 +1,39 @@
+@page "/domains/whois/{DomainName}"
+@inject HRD.Api.HRDApi HrdApi
+@using HRD.Api
+
+<h3>Whois: @DomainName</h3>
+
+@if (whoisData == null && error == null)
+{
+    <p>Loading...</p>
+}
+else if (error != null)
+{
+    <div class="alert alert-danger">@error</div>
+}
+else
+{
+    <pre class="bg-light p-3 border">@whoisData</pre>
+}
+
+@code {
+    [Parameter]
+    public string DomainName { get; set; } = "";
+
+    private string? whoisData;
+    private string? error;
+
+    protected override void OnInitialized()
+    {
+        try
+        {
+            var result = HrdApi.DomainWhois(DomainName);
+            whoisData = result.ContainsKey("whois") ? result["whois"] : "No data";
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+    }
+}

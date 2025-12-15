@@ -1,3 +1,4 @@
 # Ignore build outputs
-HrdApiNet/bin/
-HrdApiNet/obj/
+bin/
+obj/
+secrets.json

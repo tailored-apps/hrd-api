@@ -1,0 +1,84 @@
+@page "/domains/check"
+@inject HRD.Api.HRDApi HrdApi
+@using HRD.Api
+
+<h3>Check Domains</h3>
+
+<div class="mb-3">
+    <label for="domainsInput" class="form-label">Enter domains (one per line)</label>
+    <textarea class="form-control" id="domainsInput" rows="5" @bind="inputText"></textarea>
+</div>
+<button class="btn btn-success" @onclick="CheckDomains" disabled="@isLoading">
+    @if(isLoading) { <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> }
+    Check
+</button>
+
+@if (error != null)
+{
+    <div class="alert alert-danger mt-3">@error</div>
+}
+
+@if (results != null)
+{
+    <h4 class="mt-4">Results</h4>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Domain</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var kvp in results)
+            {
+                <tr>
+                    <td>@kvp.Key</td>
+                    <td>
+                        @if(kvp.Value == "available")
+                        {
+                            <span class="badge bg-success">Available</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">@kvp.Value</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private string inputText = "";
+    private Dictionary<string, string>? results;
+    private string? error;
+    private bool isLoading = false;
+
+    private void CheckDomains()
+    {
+        error = null;
+        results = null;
+        if (string.IsNullOrWhiteSpace(inputText)) return;
+
+        isLoading = true;
+        var list = inputText.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
+                            .Select(x => x.Trim())
+                            .Where(x => !string.IsNullOrEmpty(x))
+                            .Take(20); // Limit
+
+        try
+        {
+            results = HrdApi.DomainCheck(list);
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message + " | " + ex.StackTrace;
+            System.Diagnostics.Debug.WriteLine(error);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}
