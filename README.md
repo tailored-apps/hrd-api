@@ -11,6 +11,16 @@ Only a subset of the full PHP API is implemented but most common actions are ava
 - Certificate operations (info, create, renew).
 - Poll, user and news endpoints.
 
+## Secrets
+Create `secrets.json` file next to verify_php.php file and provide following data required for connection , those data you should generate from hrd admin panel.
+```json
+{
+  "login": "your_login",
+  "password": "generated_password",
+  "apiKeyHex": "generated_key"
+}
+```
+
 ## Usage
 ```csharp
 using HrdApiNet;
